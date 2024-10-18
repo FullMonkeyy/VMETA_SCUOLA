@@ -1,0 +1,178 @@
+﻿body {
+    height: 1000px;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: black;
+}
+@font-face {
+    font-family: Miofont;
+    src: url('Fonts/good times rg.otf')
+}
+#option {
+    background-color: #190342;
+    height: 100%;
+    width: 420px;
+    border-radius: 10px;
+    flex-wrap: wrap;
+}
+.selection {
+    width: 390px;
+    height: 10%;
+    background-color: purple;
+    position: relative;
+    margin: auto;
+    border-radius: 10px;
+    margin-top: 40px;
+    transform: scale(100%);
+    transition: transform 0.5s;
+    box-shadow: 0px 5px 20px 5px ;
+    font-size: 30px;
+    font-family: Miofont;
+
+}
+.selection:hover{
+
+    transform:scale(90%);
+    transition: transform 0.5s;
+
+}
+.innerselection {
+    color: white;
+    width: fit-content;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+#main {
+    height: 98%;
+    width: 1600px;
+    background-color: #190342;
+    position: absolute;
+    right: 10px;
+    border-radius: 10px;
+}
+#chat {
+    width: 1400px;
+    height: 600px;
+    position: relative;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 10px;
+    font-family: cursive, sans-serif;
+    background-color: #602770;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 20px 23px #8a3aa1;
+}
+#content {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 1000px;
+    max-height: 400px;
+    scrollbar-arrow-color: blue;
+    overflow: auto;
+    font-size: 30px;
+    font-family: Miofont;
+    color: white;
+    
+}
+
+#inputdiv {
+    background-color: gray;
+    opacity: 0.7;
+    width: 1350px;
+    height: 60px;
+    position: relative;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    display: flex;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0px 5px 20px 5px;
+}
+#message {
+    width: 82%;
+    border-radius: 10px;
+    font-size: 17px;
+    font-family: Miofont;
+    padding: 10px;
+    box-shadow: 0px 5px 20px 5px;
+}
+#send {
+    width: 10%;
+    position: relative;
+    font-size: 17px;
+    left: 11px;
+    border-radius: 10px;
+    font-family: Miofont;
+    transform: scale(100%);
+    filter: brightness(100%);
+    transition: transform 0.5s;
+    box-shadow: 0px 5px 20px 5px;
+}
+    #send:hover {
+        transform: scale(90%);
+        transition: transform 0.5s;
+        filter: brightness(75%);
+    }
+#mic {
+    width: 5%;
+    position: relative;
+    left: 20px;
+    border-radius: 10px;
+    transform: scale(100%);
+    filter: brightness(100%);
+    transition: transform 0.5s;
+    box-shadow: 0px 5px 20px 5px;
+    text-align:center;
+
+}
+    #mic:hover {
+        transform: scale(90%);
+        transition: transform 0.5s;
+        filter: brightness(75%);
+    }
+
+#mic2 {
+    width: 5%;
+    position: relative;
+    left: 20px;
+    border-radius: 10px;
+    transform: scale(100%);
+    filter: brightness(100%);
+    transition: transform 0.5s;
+    box-shadow: 0px 5px 20px 5px;
+    text-align: center;
+}
+
+    #mic2:hover {
+        transform: scale(90%);
+        transition: transform 0.5s;
+        filter: brightness(75%);
+    
+        }
+
+#mic3 {
+    width: 5%;
+    position: relative;
+    left: 20px;
+    border-radius: 10px;
+    transform: scale(100%);
+    filter: brightness(100%);
+    transition: transform 0.5s;
+    box-shadow: 0px 5px 20px 5px;
+    text-align: center;
+}
+
+    #mic3:hover {
+        transform: scale(90%);
+        transition: transform 0.5s;
+        filter: brightness(75%);
+    }

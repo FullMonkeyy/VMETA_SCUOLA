@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="CSS/People.css">
+    <title></title>
+</head>
+<body>
+    <div id="option">
+        <div class="selection" id="AI"><div class="innerselection">AI CHAT</div></div>
+        <div class="selection" id="DatabaseProblemi"><div class="innerselection">Issue</div></div>
+        <div class="selection" id="TelegramManager"><div class="innerselection">Telegram</div> </div>
+        <div class="selection" id="DatabasePersone"><div class="innerselection">People</div></div>
+        <div class="selection" id="DatabaseClassrooms"><div class="innerselection">Classrooms</div></div>
+        <div class="selection" id="DatabaseAnnounce"><div class="innerselection">Annouce</div></div>
+           <div class="selection" id="DatabaseSondaggi"><div class="innerselection">Pools</div></div>  
+    </div>
+    <div id="main">
+        <div id="chat">
+            <div id="innerchat"> PEOPLE</div>
+            <div id="content"></div>
+        </div>     
+    </div>
+    <div id="CreatingStudent" style="display:none">
+        <div id="closePopUp">Close</div>
+        <div id="innerCreatingStudent">
+            <div id="innerCreatingStudenttitle">Add a new person</div>
+            <div id="innerCreatingStudentform">
+                <div class="labelInputForm">
+                    <div class="innerabelInputForm">
+                        <label class="formLabel">First Name</label>
+                        <input id="firstnameInput" class="formInput" />
+                    </div>
+                    <div class="innerabelInputForm">
+                        <label class="formLabel">Last Name</label>
+                        <input id="lastnameInput" class="formInput" />
+                    </div>
+                </div>
+                <div class="labelInputForm">
+                    <div class="innerabelInputForm">
+                        <label class="formLabel">Email</label>
+                        <input id="emailInput" class="formInput" />
+                    </div>
+                    <div class="innerabelInputForm">
+                        <label class="formLabel">Phone Number</label>
+                        <input id="phonenumberInput" class="formInput" />
+                    </div>
+                </div>
+                <div class="labelInputForm">
+                    <div class="innerabelInputForm">
+                        <label class="formLabel">Telegram Code</label>
+                        <input id="TelegramCode" class="formInput" />
+                    </div>
+                    <div id="selectionClassroomForm">
+                        <label class="formLabel">Classroom</label>
+                        <div class="select">
+                            <select id="selectionClassroom">
+                            </select>
+                        </div>
+                    </div>
+                  
+                </div>
+                <div class="labelInputForm">
+                    <div id="InnerChekInputForm">
+                        <label class="CheckLabel">Rappresentane?</label>
+                        <input type="checkbox" id="CheckBoxlInput" />
+                    </div>
+                </div>
+                <button id="buttonRegister" class="button-64" role="button"> <span class="text"> Add Student</span> </button>
+            </div>
+    </div>
+    </div>
+    <script src="Javascript\PeopleJavascript.js"></script>
+    <script src="Javascript\Classes.js"></script>
+    <script>
+        document.getElementById("AI").addEventListener("click", () => { window.location.href = "../VanessaChat.html" });
+        document.getElementById("TelegramManager").addEventListener("click", () => { window.location.href = "../VanessaChat.html" });
+        document.getElementById("DatabasePersone").addEventListener("click", () => { window.location.href = "../People.html" });
+        document.getElementById("DatabaseProblemi").addEventListener("click", () => { window.location.href = "../Issue.html" });
+        document.getElementById("closePopUp").addEventListener("click", (button) => { document.getElementById("CreatingStudent").style.display = "none" });
+        document.getElementById("buttonRegister").addEventListener("click", (button) => { document.getElementById("CreatingStudent").style.display = "none" });
+        document.getElementById("DatabaseSondaggi").addEventListener("click", () => { window.location.href = "../Pool.html" });
+
+    </script>
+</body>
+</html>
