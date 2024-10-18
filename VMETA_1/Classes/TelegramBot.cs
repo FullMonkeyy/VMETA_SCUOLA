@@ -563,7 +563,6 @@ namespace VMETA_1.Classes
 
                                     }
                                     break;
-
                                 case "callback_data_12":
 
                                     if (WritingProblems.ContainsKey(FromId))
@@ -726,7 +725,7 @@ namespace VMETA_1.Classes
 
                                     }
                                     break;
-                               case "callback_data_26":
+                                case "callback_data_26":
 
                                         keyboard = new InlineKeyboardMarkup(new[]
                                     {
@@ -911,7 +910,7 @@ namespace VMETA_1.Classes
                                     break;
                                 case "callback_data_39":
 
-                                  Person per;
+                                    Person per;
                                     /* 
                                    foreach (Announcement lett in schoolContext.Announcements.Include(x=> x.Announcer).ToList())
                                    {
@@ -976,6 +975,7 @@ namespace VMETA_1.Classes
                                         bottoni = new List<List<InlineKeyboardButton>>();
                                         bottoniRiga = new List<InlineKeyboardButton>();
                                         _c_counter = 0;
+
                                         foreach (Person stu in studenti)
                                         {
                                             if (stu.TelegramId.Equals(FromId))
