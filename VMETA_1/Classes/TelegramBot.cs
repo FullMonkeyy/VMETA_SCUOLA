@@ -139,6 +139,7 @@ namespace VMETA_1.Classes
                                         RegisterRequest p = registerRequests.Find(x => x.isRegistred);
                                         registerRequests.Remove(p);
                                         await SendMessage($"Convalidazione riuscita!\nBenvenuto {p.Name}!\nSpero che ti potrò tornare utile!", id);
+                                        await Menu(id);
 
                                     }
                                     else
