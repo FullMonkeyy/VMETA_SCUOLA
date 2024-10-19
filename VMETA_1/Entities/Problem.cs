@@ -3,12 +3,12 @@
     public class Problem
     {
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
         public Person Person { get; set; }
         public Classroom? Classroom { get; set; }
         public DateTime DataInserimento { get; set; }
-        public string Solution { get; set; }
+        public string? Solution { get; set; }
         public bool Secret { get; set; }
         public string Category {  get; set; }
         public string isStudente { get; set; }
@@ -45,11 +45,17 @@
                 header = $"Segnalazione in qualità di {Person.Name} {Person.Surname} {Person.Classroom.ToString()} \n\n";
             else header = $"Segnalazione in qualità di rappresentante di classe {Person.Classroom.ToString()}\n\n";
 
-            string middle = $"Title: {Title}\n\n";
+            string middle="Not setted";
+            string bottom = "Not setted";
+            string solution = "Not setted";
 
-            string bottom = $"Description: {Description}\n\n";
 
-            string solution = $"Solution: {Solution}";
+            if (!Title.Equals("-NOT SETTED5353453453435375698"))
+                middle = $"Title: {Title}\n\n";
+            if (!Description.Equals("-NOT SETTED5353453453435375698"))
+                bottom = $"Description: {Description}\n\n";
+            if (!Solution.Equals("-NOT SETTED5353453453435375698"))
+                solution = $"Solution: {Solution}";
 
             return header + middle + bottom +solution;   
 

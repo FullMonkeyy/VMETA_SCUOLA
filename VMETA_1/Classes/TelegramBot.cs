@@ -32,9 +32,11 @@ namespace VMETA_1.Classes
         ReceiverOptions receiverOptions;
         CancellationTokenSource cts;
         List<RegisterRequest> registerRequests;
+
         Dictionary<long,Problem> WritingProblems;
         Dictionary<long, Letter> WritingLetterss;
         Dictionary<long, Announcement> WritingAnnoucement;
+
         Dictionary<long, Dictionary<DateTime,int>> MesssagesIdPerChat;
         bool active;
         SemaphoreSlim mtx;
@@ -97,7 +99,7 @@ namespace VMETA_1.Classes
                 {
                     if (update.Message.Text != null)
                     {
-                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-";
+                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-()";
                         if (update.Message.Text.All(c =>lettereAccentate.Contains(c)))
                         {
                             string text_message = update.Message.Text;
@@ -105,55 +107,65 @@ namespace VMETA_1.Classes
 
                             ADDTOCHAT(id, update.Message.MessageId);
 
-                            bool convalidazione = false;
+                            bool convalidazione = false;                                                 
+
                             if (text_message.StartsWith("/code:"))
                             {
-                                await CLEAR(id);
-                                string[] tmp = text_message.Split(':');
-                                if (tmp.Length == 2)
-                                {
-                                    string tmpcodice = tmp[1];
 
-                                    foreach (RegisterRequest r in registerRequests)
+                                Person tmp33 = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
+
+                                if (tmp33==null) {
+                                    await CLEAR(id);
+                                    string[] tmp = text_message.Split(':');
+                                    if (tmp.Length == 2)
                                     {
+                                        string tmpcodice = tmp[1];
 
-                                        if (r.Code.Equals(tmpcodice))
+                                        foreach (RegisterRequest r in registerRequests)
                                         {
 
-                                            Person p = schoolContext.Students.FirstOrDefault(x => x.Name.Equals(r.Name) && x.Surname.Equals(r.Surname));
-                                            p.TelegramId = id;
-                                            r.isRegistred = true;
-                                            schoolContext.SaveChanges();
-                                            convalidazione = true;
+                                            if (r.Code.Equals(tmpcodice))
+                                            {
+
+                                                Person p = schoolContext.Students.FirstOrDefault(x => x.Name.Equals(r.Name) && x.Surname.Equals(r.Surname));
+                                                p.TelegramId = id;
+                                                r.isRegistred = true;
+                                                schoolContext.SaveChanges();
+                                                convalidazione = true;
+
+                                            }
 
                                         }
 
-                                    }
 
 
 
-
-                                    if (convalidazione)
-                                    {
+                                        if (convalidazione)
+                                        {
 
                                         RegisterRequest p = registerRequests.Find(x => x.isRegistred);
                                         registerRequests.Remove(p);
                                         await SendMessage($"Convalidazione riuscita!\nBenvenuto {p.Name}!\nSpero che ti potrò tornare utile!", id);
                                         await Menu(id);
 
+                                        }
+                                        else
+                                        {
+                                            await SendMessage($"Codice errato... ", id);
+                                        }
+
+
                                     }
                                     else
                                     {
-                                        await SendMessage($"Codice errato... ", id);
+                                        await SendMessage($"Sintassi del codice Errata... \nControllare che non sia stato messo alcuno spazio.", id);
                                     }
-
-
                                 }
                                 else
                                 {
-                                    await SendMessage($"Sintassi del codice Errata... \nControllare che non sia stato messo alcuno spazio.", id);
+                                    await SendMessage($"Ciao {tmp33.Name} sei già registrato.", id);
                                 }
-                            }
+                            }                            
                             else if (text_message.StartsWith("/start"))
                             {
                                 await CLEAR(id);
@@ -355,6 +367,7 @@ namespace VMETA_1.Classes
                             }
 
                         }
+
                     }
                    
                 }
@@ -382,8 +395,11 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "true";
                                     newproblem.Person = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
-                                    if (WritingProblems.ContainsKey(FromId)) { WritingProblems.Remove(FromId); }
-                                    WritingProblems.Add(FromId, newproblem);
+                                    if (WritingProblems.ContainsKey(FromId))
+                                    {
+                                        WritingProblems.Remove(FromId);
+                                    }
+                                       WritingProblems.Add(FromId, newproblem);
 
                                     await MandaPulsantiCategorie(FromId);
 
@@ -398,7 +414,10 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "false";
                                     newproblem.Person = schoolContext.Students.FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
-                                    if (WritingProblems.ContainsKey(FromId)) { WritingProblems.Remove(FromId); }
+                                    if (WritingProblems.ContainsKey(FromId))
+                                    {
+                                        WritingProblems.Remove(FromId);
+                                    }
                                     WritingProblems.Add(FromId, newproblem);
 
                                     await MandaPulsantiCategorie(FromId);
@@ -484,6 +503,7 @@ namespace VMETA_1.Classes
                                     Announcement newannouncement = new Announcement();
                                     newannouncement.Announcer= schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));                                  
                                     if (WritingAnnoucement.ContainsKey(FromId)) { WritingAnnoucement.Remove(FromId); }
+                                    
                                     WritingAnnoucement.Add(FromId, newannouncement);
                                     await SendMessage("L'annuncio è una funzionalità speciale che permetterà di mantenere l'anonimato tra gli studenti.\n\n-Il funzionamento della coda si basa sul principio TrustPoints assengato per studente.\n\n-Si può richiedere di inserire un solo annuncio per settimana (non accumulabile) \n\n-E' severamente vietato scrivere testi diffamatori o non conformi con le linee guide standard di una organizzazione sana.\n\nPerfetto, ora scrivi il titolo dell'annuncio.  ", FromId);
                                    
@@ -1093,7 +1113,7 @@ namespace VMETA_1.Classes
                                         letter.Author = per.ToString();
                                         letter.People.Add(per);
                                         if (WritingLetterss.ContainsKey(FromId)) { WritingLetterss.Remove(FromId); }
-                                        WritingLetterss.Add(FromId, letter);
+                                         WritingLetterss.Add(FromId, letter);
                                         Person pe = await schoolContext.Students.FirstOrDefaultAsync(x => x.Id.Equals(studentId));
                                         if (per != null)
                                         {
@@ -1526,17 +1546,21 @@ namespace VMETA_1.Classes
         }
         public async Task SendLetter(Letter l)
         {
-            long FromId = l.People.Find(x => x.ToString().Equals(l.Destination)).TelegramId;
-            await SendMessage("Il messaggio è stato accettato ed elaborato. Verrà immediatamente spedito a " + l.Destination + ".", l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
-            schoolContext.Letters.Add(l);
-            schoolContext.SaveChanges();
-            DeleteWritingLetter(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
-            await CLEAR(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
-            if(!WritingLetterss.ContainsKey(FromId) && !WritingProblems.ContainsKey(FromId))
+
+            try
             {
-                await CLEAR(FromId);
-                var keyboard = new InlineKeyboardMarkup(new[]
-                         {
+                long FromId = l.People.Find(x => x.ToString().Equals(l.Destination)).TelegramId;
+                schoolContext.Letters.Add(l);
+                schoolContext.SaveChanges();
+                await SendMessage("Il messaggio è stato accettato ed elaborato. Verrà immediatamente spedito a " + l.Destination + ".", l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
+
+                DeleteWritingLetter(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
+                await CLEAR(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
+                if (!WritingLetterss.ContainsKey(FromId) && !WritingProblems.ContainsKey(FromId))
+                {
+                    await CLEAR(FromId);
+                    var keyboard = new InlineKeyboardMarkup(new[]
+                             {
                             new []
                                     {
                                         InlineKeyboardButton.WithCallbackData("RIspondi", "ID_STUDENTWRITING_"+l.People.Find(x => x.ToString().Equals(l.Author)).Id),
@@ -1545,15 +1569,22 @@ namespace VMETA_1.Classes
                                     }
                                     });
 
-                var mess = await botClient.SendTextMessageAsync(FromId, $"HAI UN NUOVO MESSAGGIO.\n\n{l.Body}\n\n{l.Author} ", replyMarkup: keyboard);
-                ADDTOCHAT(FromId, mess.MessageId);
-                
-                await Menu(l.People.Find(x => x.ToString().Equals(l.Destination)).TelegramId);
+                    var mess = await botClient.SendTextMessageAsync(FromId, $"HAI UN NUOVO MESSAGGIO.\n\n{l.Body}\n\n{l.Author} ", replyMarkup: keyboard);
+                    ADDTOCHAT(FromId, mess.MessageId);
+
+                    await Menu(l.People.Find(x => x.ToString().Equals(l.Destination)).TelegramId);
 
 
+                }
+
+                await Menu(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
             }
+            catch (Exception ex) {
 
-            await Menu(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
+                DeleteWritingLetter(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
+                await SendMessage("C'è stato un errore nel mandare il messaggio", l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId); 
+            
+            }
          
 
         }

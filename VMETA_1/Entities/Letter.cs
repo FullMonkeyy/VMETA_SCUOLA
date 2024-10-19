@@ -19,7 +19,7 @@
 
         public override string ToString()
         {
-            return $"{Title}\n{Body}\n{People[0].ToString()}";
+            return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-{People[0].ToString()}";
         }
 
 
