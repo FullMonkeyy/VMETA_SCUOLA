@@ -308,10 +308,11 @@ app.MapDelete("/api/DeletePerson/{id}", async (string id) => {
     List<string> tmp = id.Trim().Split(' ').ToList();
 
     string Name = tmp[0];
+    Name = Name.Trim();
     string Cognome = string.Join(" ", tmp.Skip(1));
+    Cognome = Cognome.Trim();
 
-
-    Person todelete = schoolContext.Students.FirstOrDefault(x => x.Name.Equals(Name) && x.Surname.Equals(Cognome));
+    Person todelete = schoolContext.Students.FirstOrDefault(x => x.Name.Trim().Equals(Name) && x.Surname.Trim().Equals(Cognome));
 
     if (todelete != null)
     {
@@ -881,7 +882,6 @@ async void AnalizzaCodaAnnuncio() {
         if (_announcement_queue.Count > 0)
         {
 
-
             semaphore.WaitOne();
             Announcement testing = _announcement_queue.Dequeue();
 
@@ -894,14 +894,27 @@ async void AnalizzaCodaAnnuncio() {
             if (BotResponse.Equals("NO"))
             {
 
-                await telegramBot.CLEAR(testing.Announcer.TelegramId);
-                await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Announcer.TelegramId);
+                try
+                {
+                    schoolContext.Announcements.Add(testing);
+                    schoolContext.SaveChanges();
+                    await telegramBot.CLEAR(testing.Announcer.TelegramId);
+                    await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Announcer.TelegramId);
 
 
-                schoolContext.Announcements.Add(testing);
-                schoolContext.SaveChanges();
-                await telegramBot.Menu(testing.Announcer.TelegramId);
-                telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
+                    await telegramBot.Menu(testing.Announcer.TelegramId);
+                    telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
+                }
+                catch (Exception e)
+                {
+                    schoolContext.Announcements.Remove(testing);
+                    telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
+                    await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", testing.Announcer.TelegramId);
+                    await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", telegramBot.DavideID);
+
+                }
+
+
             }
             else
             {
@@ -912,14 +925,26 @@ async void AnalizzaCodaAnnuncio() {
 
                 if (BotResponse.Equals("NO"))
                 {
-                    await telegramBot.SendMessage($"{testing.Title.ToUpper()}\n\nLa richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Announcer.TelegramId);
+
+                    try
+                    {
+                        schoolContext.Announcements.Add(testing);
+                        schoolContext.SaveChanges();
+                        await telegramBot.CLEAR(testing.Announcer.TelegramId);
+                        await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Announcer.TelegramId);
 
 
-                    schoolContext.Announcements.Add(testing);
-                    schoolContext.SaveChanges();
-                    await telegramBot.CLEAR(testing.Announcer.TelegramId);
-                    await telegramBot.Menu(testing.Announcer.TelegramId);
-                    telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
+                        await telegramBot.Menu(testing.Announcer.TelegramId);
+                        telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
+                    }
+                    catch (Exception e)
+                    {
+                        schoolContext.Announcements.Remove(testing);
+                        telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
+                        await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", testing.Announcer.TelegramId);
+                        await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", telegramBot.DavideID);
+
+                    }
                 }
                 else
                 {
