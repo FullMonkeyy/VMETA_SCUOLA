@@ -40,7 +40,10 @@ Mutex mutex3 = new Mutex();
 
 Semaphore semaphore = new Semaphore(1, 2000);
 
-TelegramBot telegramBot = new TelegramBot("7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU", schoolContext);
+
+//API DEV:7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM
+//API RELEASE:  7502523717:AAHuuedxcjwGwIarfZUrMCEfsQbsyXHPwbY
+TelegramBot telegramBot = new TelegramBot(" 7502523717:AAHuuedxcjwGwIarfZUrMCEfsQbsyXHPwbY", schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
@@ -720,7 +723,7 @@ async void AnalizzaCoda()
 
             semaphore.WaitOne();
             Problem testing = _problem_queue.Dequeue();
-
+            testing.AI_Analyzing = true;
 
             string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
             BotResponse = "";
@@ -804,6 +807,8 @@ async void AnalizzaCoda()
 async void AnalizzaCodaLettere()
 {
     Letter testing;
+
+
     while (true)
     {
 
@@ -812,6 +817,7 @@ async void AnalizzaCodaLettere()
 
             semaphore.WaitOne();
             testing = _letter_queue.Dequeue();
+            testing.AI_Analyzing = true;
             string mex;
             string final = "Questo messaggio contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE, TERMINI OMOFOBI oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.Title;
             BotResponse = "";
@@ -884,7 +890,7 @@ async void AnalizzaCodaAnnuncio() {
 
             semaphore.WaitOne();
             Announcement testing = _announcement_queue.Dequeue();
-
+            testing.AI_Analyzing = true;
 
             string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
             BotResponse = "";

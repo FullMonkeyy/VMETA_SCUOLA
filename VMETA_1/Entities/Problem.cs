@@ -15,13 +15,14 @@
         public int TrustPoints { get; set; }
         public bool AI_Forced {  get; set; }
         public int CountTry {  get; set; }
-
+        public bool AI_Analyzing { get; set; }
         public Problem() {
             DataInserimento=DateTime.Now;
             AI_Forced = false;
             Title = "-NOT SETTED5353453453435375698";
             Description = "-NOT SETTED5353453453435375698";
             Solution = "-NOT SETTED5353453453435375698";
+            AI_Analyzing = false;
         }
         public Problem(string t, string d, Person p, Classroom c, string solution, bool secret, string category, string is_student, bool aI_Forced)
         {
