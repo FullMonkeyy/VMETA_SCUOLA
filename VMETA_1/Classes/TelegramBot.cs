@@ -1328,7 +1328,7 @@ namespace VMETA_1.Classes
                                                text: ErrorMessage,
                                                cancellationToken: cancellationToken);
 
-            RiavvioNecessario(this);
+      
 
             return Task.CompletedTask;
         }
@@ -1410,26 +1410,29 @@ namespace VMETA_1.Classes
         }
         public async Task Menu(long id)
         {
+
             Person p = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
-            string tmpcall = "callback_data_10";
-            if (p.isJustStudent)
+            if (p != null)
             {
-                tmpcall = "callback_data_1";
-            }
-            var keyboard = new InlineKeyboardMarkup(new[]
-                           {
+                string tmpcall = "callback_data_10";
+                if (p.isJustStudent)
+                {
+                    tmpcall = "callback_data_1";
+                }
+                var keyboard = new InlineKeyboardMarkup(new[]
+                               {
                         new []
                                 {
                              InlineKeyboardButton.WithCallbackData("🚩Segnala problema🚩",tmpcall),
                                     InlineKeyboardButton.WithCallbackData("Le tue segnalazioni", "callback_data_7"),
-                                       
+
 
 
                                 },
                                 new []
                                 {
-                                     InlineKeyboardButton.WithCallbackData("Scrivi un annuncio", "callback_data_8"),
-                         
+                                     InlineKeyboardButton.WithCallbackData("🌟Scrivi un annuncio🌟", "callback_data_8"),
+
                                              InlineKeyboardButton.WithCallbackData("Visualizza Annunci", "callback_data_39"),
 
                                 }
@@ -1445,13 +1448,14 @@ namespace VMETA_1.Classes
                                      new []
                                 {
 
-                                     InlineKeyboardButton.WithCallbackData("Vota i sondaggi", "callback_data_24"),
+                                     InlineKeyboardButton.WithCallbackData("📊 Vota i sondaggi 📊", "callback_data_24"),
 
                                 }
                });
 
-            var mes = await botClient.SendTextMessageAsync(id, $"Ciao {p.Name}, benvenuto su VMeta.\n\n-🌟🌟TrustPoints attualmente in possesso: {p.TrustPoints}🌟🌟\n\n-📊📊Sondaggi da votare: {p.LastDecision}📊📊\n\nClicca il pulsante per la funzionalità interessata", replyMarkup: keyboard);
-            ADDTOCHAT(id, mes.MessageId);
+                var mes = await botClient.SendTextMessageAsync(id, $"Ciao {p.Name}, benvenuto su VMeta.\n\n-🌟🌟I tuoi TrustPoints: {p.TrustPoints}🌟🌟\n\n-📊📊Sondaggi da votare: {p.LastDecision}📊📊\n\nClicca il pulsante per la funzionalità interessata", replyMarkup: keyboard);
+                ADDTOCHAT(id, mes.MessageId);
+            }
         }
         public bool RegisterNewAccountRequest(string name,string surname,string code)
         {
