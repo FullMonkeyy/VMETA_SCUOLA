@@ -12,7 +12,7 @@
         public string? Author {  get; set; }
         public string? Destination { get; set; }
         public bool? AI_Analyzing { get; set; }
-
+        public int? YEARAuthor {  get; set; }
         public Letter() {
             People = new List<Person>();
             AI_Analyzing = false;
@@ -20,7 +20,14 @@
 
         public override string ToString()
         {
-            return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-{People[0].ToString()}";
+            try
+            {
+                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da{People[0].ToString()} per {People[1].ToString()}";
+            }
+            catch (Exception ex)
+            {
+                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da{People[0].ToString()} ";
+            }
         }
 
 

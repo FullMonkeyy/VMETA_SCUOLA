@@ -9,6 +9,7 @@ namespace VMETA_1.Entities
         public string? Title { get; set; }
         public string? Description { get; set; }
         public Person Announcer {  get; set; }
+        public int? ClassroomYEAR {  get; set; }
         public DateTime DataInserimento { get; set; }
         public int TrustPoints { get; set; }
         public bool AI_Forced { get; set; } 
@@ -26,7 +27,13 @@ namespace VMETA_1.Entities
 
         public override string ToString()
         {
-            return $"Titolo\n{Title}\n\nDescription\n{Description}";
+            string tmp ="";
+            if (ClassroomYEAR != null) {
+                tmp += ClassroomYEAR;
+                return $"Titolo\n{Title}\n\nDescription\n{Description}\n\nStudente del {tmp}° anno ";
+
+            }else
+            return $"Titolo\n{Title}\n\nDescription\n{Description} ";
         }
 
     }
