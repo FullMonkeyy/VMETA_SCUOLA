@@ -53,6 +53,10 @@ function UpdateDisplay(data) {
 
         var divo = document.createElement("div");
         divo.id = "div" + i;
+
+        if (data[i]["aiForced"])
+            divo.style.backgroundColor = "yellow";
+
         divo.setAttribute("class", "ProblemCard");
         var Title = document.createElement("div");
         Title.setAttribute("class", "ProblemCardTITLE");
