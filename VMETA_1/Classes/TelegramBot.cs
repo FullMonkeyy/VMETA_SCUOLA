@@ -1762,7 +1762,7 @@ namespace VMETA_1.Classes
                 if (!WritingLetterss.ContainsKey(FromId) && !WritingProblems.ContainsKey(FromId))
                 {
                     await CLEAR(FromId);
-                    var chat = await botClient.GetChatAsync(FromId);
+                    var chat = await botClient.GetChatAsync(l.People.Find(x => x.ToString().Equals(l.Destination)).TelegramId);
                     string username = chat.Username;
                     string link = $"https://t.me/{username}";
 

@@ -14,6 +14,7 @@ namespace VMETA_1.Models
         public string isStudent {  get; set; }
         public string Category {  get; set; }
         public string InsertDate {  get; set; }
+        public bool AIForced {  get; set; }
 
         public ProblemModel() { }   
         public ProblemModel(Problem p)
@@ -31,6 +32,7 @@ namespace VMETA_1.Models
             isStudent=p.isStudente;
             Category = p.Category;
             InsertDate=p.DataInserimento.ToShortDateString();
+            AIForced = p.AI_Forced;
 
         }
 
