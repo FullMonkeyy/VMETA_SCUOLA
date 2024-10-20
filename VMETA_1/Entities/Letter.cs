@@ -22,11 +22,11 @@
         {
             try
             {
-                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da{People[0].ToString()} per {People[1].ToString()}";
+                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da {People[0].ToString()} per {People[1].ToString()}";
             }
             catch (Exception ex)
             {
-                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da{People[0].ToString()} ";
+                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da {People[0].ToString()} ";
             }
         }
 
