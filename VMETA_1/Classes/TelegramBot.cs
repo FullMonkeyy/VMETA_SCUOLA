@@ -410,6 +410,12 @@ namespace VMETA_1.Classes
                                     {
                                         if (!(bool)WritingProblems[FromId].AI_Analyzing)
                                             WritingProblems.Remove(FromId);
+                                        else
+                                        {
+                                            await SendMessage("E' già in corso l'analisi di un problema. Attendere la fine dell'analisi", FromId);
+                                            await Menu(FromId);
+                                            break;
+                                        }
                                     }
                                     if(WritingAnnoucement.ContainsKey(FromId))
                                     {
@@ -417,6 +423,7 @@ namespace VMETA_1.Classes
                                             WritingAnnoucement.Remove(FromId);
                                     }
                                   
+
                                     WritingProblems.Add(FromId, newproblem);
 
                                     await MandaPulsantiCategorie(FromId);
@@ -442,6 +449,12 @@ namespace VMETA_1.Classes
                                     {
                                         if (!(bool)WritingProblems[FromId].AI_Analyzing)
                                             WritingProblems.Remove(FromId);
+                                        else
+                                        {
+                                            await SendMessage("E' già in corso l'analisi di un problema. Attendere la fine dell'analisi", FromId);
+                                            await Menu(FromId);
+                                            break;
+                                        }
                                     }
                                     if (WritingAnnoucement.ContainsKey(FromId))
                                     {
@@ -579,8 +592,16 @@ namespace VMETA_1.Classes
                                         }
                                         if (WritingAnnoucement.ContainsKey(FromId))
                                         {
-                                            if (!(bool)WritingLetterss[FromId].AI_Analyzing)
+                                            if (!(bool)WritingAnnoucement[FromId].AI_Analyzing)
                                                 WritingAnnoucement.Remove(FromId);
+                                            else
+                                            {
+                                                await SendMessage("E' già in corso l'analisi di un annuncio. Attendere la fine dell'analisi", FromId);
+                                                await Menu(FromId);
+                                                break;
+                                            }
+
+
                                         }
 
                                         WritingAnnoucement.Add(FromId, newannouncement);
@@ -1263,8 +1284,15 @@ namespace VMETA_1.Classes
                                         letter.People.Add(per);
                                         if (WritingLetterss.ContainsKey(FromId))
                                         {
+                                            
                                             if (!(bool)WritingLetterss[FromId].AI_Analyzing)
                                                 WritingLetterss.Remove(FromId);
+                                            else
+                                            {
+                                                await SendMessage("E' già in corso l'analisi di un messaggio.\nAttendere la fine dell'analisi", FromId);
+                                                await Menu(FromId);
+                                                break;
+                                            }
                                         }
                                         if (WritingProblems.ContainsKey(FromId))
                                         {
@@ -1526,11 +1554,18 @@ namespace VMETA_1.Classes
           
         }
         public async Task SendMessage(string text, long id){
-            var mes=await botClient.SendTextMessageAsync(
-                  chatId: id,
-                  text: text
-                  );
-            ADDTOCHAT(id, mes.MessageId);
+
+            if (id != -1)
+            {
+                try
+                {
+                    var mes = await botClient.SendTextMessageAsync(
+                          chatId: id,
+                          text: text
+                          );
+                    ADDTOCHAT(id, mes.MessageId);
+                }catch(Exception e) { }
+            }
         }
         public async Task MandaPulsantiCategorie(long id)
         {
