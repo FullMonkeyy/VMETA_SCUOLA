@@ -703,11 +703,15 @@ void AddProblem(object sendere, Problem p)
 
     for (int i = 0; i < queuetmp.Count; i++) {
 
-        if (queuetmp.ToList()[i]!= _problem_queue.ToList()[i])
+        try
         {
+            if (queuetmp.ToList()[i]!= _problem_queue.ToList()[i])
+            {
             _problem_queue.ToList()[i].TrustPoints += 0.25;
+            }
         }
-    
+        catch (Exception e) { }
+
     }
   
     mutex2.ReleaseMutex();
@@ -721,11 +725,14 @@ void AddLetter(object sender, Letter l)
 
     for (int i = 0; i < queuetmp.Count; i++)
     {
-
-        if (queuetmp.ToList()[i] != _letter_queue.ToList()[i])
+        try
         {
-            _letter_queue.ToList()[i].TrustPoints += 0.25;
+            if (queuetmp.ToList()[i] != _letter_queue.ToList()[i])
+            {
+                _letter_queue.ToList()[i].TrustPoints += 0.25;
+            }
         }
+        catch(Exception e) { }
 
     }
 
@@ -852,11 +859,11 @@ async void AnalizzaCoda()
 async void AnalizzaCodaLettere()
 {
     Letter testing;
-
+    
 
     while (true)
     {
-
+     
         if (_letter_queue.Count > 0)
         {
 
@@ -921,7 +928,7 @@ async void AnalizzaCodaLettere()
 
 
         }
-
+        
         Thread.Sleep(20);
     }
 }
