@@ -364,7 +364,7 @@ namespace VMETA_1.Classes
                             if (update.Message != null)
                             {
                                 long id = update.Message.Chat.Id;
-                                await SendMessage("E' stato utilizzato un set di caratteri non consentito (ma che lingua parli bro). Unica punteggiatura ritenuta accettabile: ./:,;!?€$'-()=", id);
+                                await SendMessage("E' stato utilizzato un set di caratteri non consentito (ma che lingua parli bro). Unica punteggiatura ritenuta accettabile: ./:,;!?€$'-()=\nRiprova a scrivere il messaggio correttamente facendo attenzione ai caratteri usati", id);
                                 ADDTOCHAT(id, update.Message.MessageId);
                             }
 
