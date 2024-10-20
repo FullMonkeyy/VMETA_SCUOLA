@@ -535,7 +535,7 @@ namespace VMETA_1.Classes
                                     DateTime tmp = DateTime.Now;
                                     
 
-                                    if (!pet.Announcements.Exists(x => (tmp - x.DataInserimento).Days < 7))
+                                    if (pet.Announcements.TrueForAll(x => (tmp - x.DataInserimento).Days > 7))
                                         procced = true;
                                     else
                                     {
@@ -546,8 +546,8 @@ namespace VMETA_1.Classes
                                         }
                                         int differenza = giornoSettimana - 1;
                                         DateTime lunedi = tmp.AddDays(-differenza);
-                                        DateTime Min = pet.Announcements.Min(x => x.DataInserimento);
-                                        Announcement daverificare = pet.Announcements.Find(x => x.DataInserimento.Equals(Min));
+                                        DateTime Max = pet.Announcements.Max(x => x.DataInserimento);
+                                        Announcement daverificare = pet.Announcements.Find(x => x.DataInserimento.Equals(Max));
                                         if (daverificare.DataInserimento < lunedi)
                                         {
                                             procced = true;
@@ -601,7 +601,7 @@ namespace VMETA_1.Classes
                                     tmp = DateTime.Now;
 
 
-                                    if (!pet.Letters.Exists(x => (tmp - x.InsertionDate).Days < 7))
+                                    if (pet.Letters.TrueForAll(x => (tmp - x.InsertionDate).Days > 7))
                                         procced = true;
                                     else
                                     {
@@ -612,8 +612,8 @@ namespace VMETA_1.Classes
                                         }
                                         int differenza = giornoSettimana - 1;
                                         DateTime lunedi = tmp.AddDays(-differenza);
-                                        DateTime Min = pet.Letters.Min(x => x.InsertionDate);
-                                        Letter daverificare = pet.Letters.Find(x => x.InsertionDate.Equals(Min));
+                                        DateTime Max = pet.Letters.Max(x => x.InsertionDate);
+                                        Letter daverificare = pet.Letters.Find(x => x.InsertionDate.Equals(Max));
                                         if (daverificare.InsertionDate < lunedi)
                                         {
                                             procced = true;
@@ -668,7 +668,7 @@ namespace VMETA_1.Classes
                                     else
                                     {
 
-                                        await SendMessage("Mi dispiace ma hai già mandato un messaggio elaborato questa settimana. Lunedì prossimo potrai nuovamente mandare un messaggio", FromId);
+                                        await SendMessage("Mi dispiace ma hai già mandato un messaggio elaborato questa settimana. Lunedì prossimo potrai nuovamente mandare un altro messaggio", FromId);
                                         await Menu(FromId);
 
                                     }
