@@ -600,6 +600,7 @@ namespace VMETA_1.Classes
                                     procced = false;
                                     tmp = DateTime.Now;
 
+                                   
 
                                     if (pet.Letters.TrueForAll(x => (tmp - x.InsertionDate).Days > 7))
                                         procced = true;
@@ -612,9 +613,19 @@ namespace VMETA_1.Classes
                                         }
                                         int differenza = giornoSettimana - 1;
                                         DateTime lunedi = tmp.AddDays(-differenza);
-                                        DateTime Max = pet.Letters.Max(x => x.InsertionDate);
-                                        Letter daverificare = pet.Letters.Find(x => x.InsertionDate.Equals(Max));
-                                        if (daverificare.InsertionDate < lunedi)
+
+                                        List<Letter> tmmp = pet.Letters.Where(x=> x.Author.Equals(pet.ToString())).ToList();
+                                        if (tmmp.Count > 0)
+                                        {
+                                            DateTime Max = tmmp.Max(x => x.InsertionDate);
+
+                                            Letter daverificare = pet.Letters.Find(x => x.InsertionDate.Equals(Max));
+                                            if (daverificare.InsertionDate < lunedi)
+                                            {
+                                                procced = true;
+                                            }
+                                        }
+                                        else
                                         {
                                             procced = true;
                                         }
@@ -1762,7 +1773,7 @@ namespace VMETA_1.Classes
                 if (!WritingLetterss.ContainsKey(FromId) && !WritingProblems.ContainsKey(FromId))
                 {
                     await CLEAR(FromId);
-                    var chat = await botClient.GetChatAsync(l.People.Find(x => x.ToString().Equals(l.Destination)).TelegramId);
+                    var chat = await botClient.GetChatAsync(l.People.Find(x => x.ToString().Equals(l.Author)).TelegramId);
                     string username = chat.Username;
                     string link = $"https://t.me/{username}";
 
