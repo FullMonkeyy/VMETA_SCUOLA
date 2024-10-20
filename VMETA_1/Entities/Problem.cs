@@ -12,7 +12,7 @@
         public bool Secret { get; set; }
         public string Category {  get; set; }
         public string isStudente { get; set; }
-        public int TrustPoints { get; set; }
+        public double TrustPoints { get; set; }
         public bool AI_Forced {  get; set; }
         public int CountTry {  get; set; }
         public bool AI_Analyzing { get; set; }

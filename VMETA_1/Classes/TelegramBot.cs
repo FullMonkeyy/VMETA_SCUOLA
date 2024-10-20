@@ -20,6 +20,8 @@ using System;
 using Message = Telegram.Bot.Types.Message;
 using System.Linq;
 using System.Security.Cryptography.Xml;
+using Microsoft.Win32.SafeHandles;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace VMETA_1.Classes
 {
@@ -364,7 +366,7 @@ namespace VMETA_1.Classes
                             if (update.Message != null)
                             {
                                 long id = update.Message.Chat.Id;
-                                await SendMessage("E' stato utilizzato un set di caratteri non consentito (ma che lingua parli bro). Unica punteggiatura ritenuta accettabile: ./:,;!?€$'-()=\nRiprova a scrivere il messaggio correttamente facendo attenzione ai caratteri usati", id);
+                                await SendMessage("E' stato utilizzato un set di caratteri non consentito (ma che lingua parli bro).\nUnica punteggiatura ritenuta accettabile: ./:,;!?€$'-()=\nNon si possono inserire emoji\nRiprova a scrivere il messaggio correttamente facendo attenzione ai caratteri usati", id);
                                 ADDTOCHAT(id, update.Message.MessageId);
                             }
 
@@ -397,7 +399,8 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "true";
                                     newproblem.Person = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
-                                    if(WritingLetterss.ContainsKey(FromId))
+                                    newproblem.TrustPoints = newproblem.Person.TrustPoints;
+                                    if (WritingLetterss.ContainsKey(FromId))
                                     {
                                         if (!(bool)WritingLetterss[FromId].AI_Analyzing)
                                             WritingLetterss.Remove(FromId);
@@ -428,6 +431,7 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "false";
                                     newproblem.Person = schoolContext.Students.FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
+                                    newproblem.TrustPoints = newproblem.Person.TrustPoints;
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
                                         if (!(bool)WritingLetterss[FromId].AI_Analyzing)
@@ -524,34 +528,68 @@ namespace VMETA_1.Classes
                                     ADDTOCHAT(FromId, mees.MessageId);
                                     break;
                                 case "callback_data_8":
-                                    await botClient.AnswerCallbackQueryAsync(update.CallbackQuery.Id, $"Problema di {schoolContext.Students.FirstOrDefault(x => x.TelegramId.Equals(FromId)).Name}");
-                                    Announcement newannouncement = new Announcement();
 
-                                    newannouncement.Announcer= schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));
-                                    int tmppp;
-                                    if (int.TryParse(newannouncement.Announcer.Classroom.Year, out tmppp))
+                                    Person pet = await schoolContext.Students.Include(x=> x.Announcements).FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
+                                    bool procced = false;
+                                    DateTime tmp = DateTime.Now;
+                                    
+
+                                    if (!pet.Announcements.Exists(x => (tmp - x.DataInserimento).Days < 7))
+                                        procced = true;
+                                    else
                                     {
-                                        newannouncement.ClassroomYEAR = tmppp;
-                                    }
-                                    if (WritingLetterss.ContainsKey(FromId))
-                                    {
-                                        if (!(bool)WritingLetterss[FromId].AI_Analyzing)
-                                            WritingLetterss.Remove(FromId);
-                                    }
-                                    if (WritingProblems.ContainsKey(FromId))
-                                    {
-                                        if (!(bool)WritingProblems[FromId].AI_Analyzing)
-                                            WritingProblems.Remove(FromId);
-                                    }
-                                    if (WritingAnnoucement.ContainsKey(FromId))
-                                    {
-                                        if (!(bool)WritingLetterss[FromId].AI_Analyzing)
-                                            WritingAnnoucement.Remove(FromId);
+                                        int giornoSettimana = (int)tmp.DayOfWeek;
+                                        if (giornoSettimana == 0)
+                                        {
+                                            giornoSettimana = 7;
+                                        }
+                                        int differenza = giornoSettimana - 1;
+                                        DateTime lunedi = tmp.AddDays(-differenza);
+                                        DateTime Min = pet.Announcements.Min(x => x.DataInserimento);
+                                        Announcement daverificare = pet.Announcements.Find(x => x.DataInserimento.Equals(Min));
+                                        if (daverificare.DataInserimento < lunedi)
+                                        {
+                                            procced = true;
+                                        }
+                                 
                                     }
 
-                                    WritingAnnoucement.Add(FromId, newannouncement);
-                                    await SendMessage("L'annuncio è una funzionalità speciale che permetterà di mantenere l'anonimato tra gli studenti.\n\n-Il funzionamento della coda si basa sul principio TrustPoints assengato per studente.\n\n-Si può richiedere di inserire un solo annuncio per settimana (non accumulabile) \n\n-E' severamente vietato scrivere testi diffamatori o non conformi con le linee guide standard di una organizzazione sana.\n\nPerfetto, ora scrivi il titolo dell'annuncio.  ", FromId);
-                                   
+                                    if (procced)
+                                    {
+
+                                        await botClient.AnswerCallbackQueryAsync(update.CallbackQuery.Id, $"Annuncio di {pet.Name}");
+                                        Announcement newannouncement = new Announcement();
+
+                                        newannouncement.Announcer = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));
+                                        int tmppp;
+                                        if (int.TryParse(newannouncement.Announcer.Classroom.Year, out tmppp))
+                                        {
+                                            newannouncement.ClassroomYEAR = tmppp;
+                                        }
+                                        if (WritingLetterss.ContainsKey(FromId))
+                                        {
+                                            if (!(bool)WritingLetterss[FromId].AI_Analyzing)
+                                                WritingLetterss.Remove(FromId);
+                                        }
+                                        if (WritingProblems.ContainsKey(FromId))
+                                        {
+                                            if (!(bool)WritingProblems[FromId].AI_Analyzing)
+                                                WritingProblems.Remove(FromId);
+                                        }
+                                        if (WritingAnnoucement.ContainsKey(FromId))
+                                        {
+                                            if (!(bool)WritingLetterss[FromId].AI_Analyzing)
+                                                WritingAnnoucement.Remove(FromId);
+                                        }
+
+                                        WritingAnnoucement.Add(FromId, newannouncement);
+                                        await SendMessage("L'annuncio è una funzionalità speciale che permetterà di mantenere l'anonimato tra gli studenti.\n\n-Il funzionamento della coda si basa sul principio TrustPoints assengato per studente.\n\n-Si può richiedere di inserire un solo annuncio per settimana (non accumulabile) \n\n-E' severamente vietato scrivere testi diffamatori o non conformi con le linee guide standard di una organizzazione sana.\n\nPerfetto, ora scrivi il titolo dell'annuncio.  ", FromId);
+                                    }
+                                    else
+                                    {
+                                        await SendMessage("Mi dispiace ma hai già inserito un annuncio questa settimana. Lunedì prossimo potrai nuovamente reinserire un annuncio", FromId);
+                                        await Menu(FromId);
+                                    }
 
                                     break;
                                 case "callback_data_9":
@@ -598,6 +636,9 @@ namespace VMETA_1.Classes
 
                                     break;
                                 case "callback_data_10":
+
+                                 
+
                                     keyboard = new InlineKeyboardMarkup(new[]
                              {
                         new []
@@ -1084,17 +1125,17 @@ namespace VMETA_1.Classes
                                         int id;
                                         if (int.TryParse(temp[2], out id))
                                         {
-                                            Decision tmp = await schoolContext.Decisions.Include(x => x.Pool).FirstOrDefaultAsync(x => x.Id.Equals(id));
+                                            Decision tmp4 = await schoolContext.Decisions.Include(x => x.Pool).FirstOrDefaultAsync(x => x.Id.Equals(id));
 
-                                            string descp = tmp.PoolTitle() + "\n\n" + tmp.Pool.Descrizione;
+                                            string descp = tmp4.PoolTitle() + "\n\n" + tmp4.Pool.Descrizione;
                                             bottoni = new List<List<InlineKeyboardButton>>();
                                             bottoniRiga = new List<InlineKeyboardButton>();
                                             _c_counter = 0;
                                             int count = 0;
-                                            foreach (string opt in tmp.Pool.Options)
+                                            foreach (string opt in tmp4.Pool.Options)
                                             {
 
-                                                callback = "ID_VOTE_" + tmp.Id + "_" + count;
+                                                callback = "ID_VOTE_" + tmp4.Id + "_" + count;
                                                 InlineKeyboardButton bottone = InlineKeyboardButton.WithCallbackData(opt, callback);
                                                 bottoniRiga.Add(bottone);
                                                 if (_c_counter < 1)
@@ -1132,13 +1173,17 @@ namespace VMETA_1.Classes
                                         int decisionid,optionvalue;
                                         if (int.TryParse(temp[2], out decisionid) && int.TryParse(temp[3], out optionvalue))
                                         {
-                                            Decision tmp = await schoolContext.Decisions.Include(x => x.Pool).FirstOrDefaultAsync(x => x.Id.Equals(decisionid));
+                                            Decision tmp5 = await schoolContext.Decisions.Include(x => x.Pool).FirstOrDefaultAsync(x => x.Id.Equals(decisionid));
 
-                                            string selected = tmp.Pool.Options[optionvalue];
+                                            string selected = tmp5.Pool.Options[optionvalue];
 
-                                            tmp.MakeYourDecision(selected);
+                                            tmp5.MakeYourDecision(selected);
+                                            
                                             schoolContext.SaveChanges();
-                                            await SendMessage("Hai votato \"" + selected + "\"", FromId);
+                                            await SendMessage("Hai votato \"" + selected + "\"\n\nTi verrà assegnato 1 TrustPoint", FromId);
+                                            p = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
+                                            p.TrustPoints += 1;
+                                            schoolContext.SaveChanges();
                                             await Menu(FromId);
                                         }
                                     }
@@ -1156,6 +1201,7 @@ namespace VMETA_1.Classes
                                         letter.AI_Analyzing = false;
                                         per = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
                                         letter.Author = per.ToString();
+                                        letter.TrustPoints = per.TrustPoints;
                                         letter.People.Add(per);
                                         if (WritingLetterss.ContainsKey(FromId))
                                         {
@@ -1364,11 +1410,17 @@ namespace VMETA_1.Classes
         }
         public async Task Menu(long id)
         {
+            Person p = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
+            string tmpcall = "callback_data_10";
+            if (p.isJustStudent)
+            {
+                tmpcall = "callback_data_1";
+            }
             var keyboard = new InlineKeyboardMarkup(new[]
                            {
                         new []
                                 {
-                             InlineKeyboardButton.WithCallbackData("🚩Segnala problema🚩", "callback_data_10"),
+                             InlineKeyboardButton.WithCallbackData("🚩Segnala problema🚩",tmpcall),
                                     InlineKeyboardButton.WithCallbackData("Le tue segnalazioni", "callback_data_7"),
                                        
 
@@ -1398,7 +1450,7 @@ namespace VMETA_1.Classes
                                 }
                });
 
-            var mes = await botClient.SendTextMessageAsync(id, "Benvenuto su VMeta, clicca il pulsante per la funzionalità interessata", replyMarkup: keyboard);
+            var mes = await botClient.SendTextMessageAsync(id, $"Ciao {p.Name}, benvenuto su VMeta.\n\n-🌟🌟TrustPoints attualmente in possesso: {p.TrustPoints}🌟🌟\n\n-📊📊Sondaggi da votare: {p.LastDecision}📊📊\n\nClicca il pulsante per la funzionalità interessata", replyMarkup: keyboard);
             ADDTOCHAT(id, mes.MessageId);
         }
         public bool RegisterNewAccountRequest(string name,string surname,string code)

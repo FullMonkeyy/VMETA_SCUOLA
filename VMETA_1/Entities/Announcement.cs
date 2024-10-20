@@ -11,7 +11,7 @@ namespace VMETA_1.Entities
         public Person Announcer {  get; set; }
         public int? ClassroomYEAR {  get; set; }
         public DateTime DataInserimento { get; set; }
-        public int TrustPoints { get; set; }
+        public double TrustPoints { get; set; }
         public bool AI_Forced { get; set; } 
         public int CountTry { get; set; }
         public bool AI_Analyzing {  get; set; }
