@@ -13,9 +13,11 @@
         public string? Destination { get; set; }
         public bool? AI_Analyzing { get; set; }
         public int? YEARAuthor {  get; set; }
+        public double TrustPoints {  get; set; }
         public Letter() {
             People = new List<Person>();
             AI_Analyzing = false;
+            TrustPoints = 0;
         }
 
         public override string ToString()

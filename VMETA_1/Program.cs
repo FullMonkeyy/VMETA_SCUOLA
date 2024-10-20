@@ -43,7 +43,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 //API DEV:7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM
 //API RELEASE: 7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU
-TelegramBot telegramBot = new TelegramBot("7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU", schoolContext);
+TelegramBot telegramBot = new TelegramBot("7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM", schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
@@ -53,6 +53,9 @@ CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 Thread AiProblemSender = new Thread(AnalizzaCoda);
 Thread AILetterSender = new Thread(AnalizzaCodaLettere);
 Thread AIAnnouncementSender = new Thread(AnalizzaCodaAnnuncio);
+
+
+
 string BotResponse = "";
 Streamer = new ActionResponseStreamer<ChatResponseStream>((stream) =>
 {
@@ -86,12 +89,7 @@ app.UseHttpsRedirection();
 //GET
 app.MapGet("/api/Start", () =>
 {
-
-
-
-
-
-    return Results.Ok("grande");
+     return Results.Ok("grande");
 });
 app.MapGet("/api/GetResponse", async () => {
 
@@ -690,19 +688,58 @@ async Task NotificaNuovoPool(string title, Person p)
 void AddProblem(object sendere, Problem p)
 {
     mutex2.WaitOne();
+ 
     _problem_queue.Enqueue(p);
+    Queue<Problem> queuetmp = new Queue<Problem>(_problem_queue);
+    _problem_queue.OrderBy(x => x.TrustPoints);
+
+    for (int i = 0; i < queuetmp.Count; i++) {
+
+        if (queuetmp.ToList()[i]!= _problem_queue.ToList()[i])
+        {
+            _problem_queue.ToList()[i].TrustPoints += 0.25;
+        }
+    
+    }
+  
     mutex2.ReleaseMutex();
 }
 void AddLetter(object sender, Letter l)
 {
     mutex1.WaitOne();
     _letter_queue.Enqueue(l);
+    Queue<Letter> queuetmp = new Queue<Letter>(_letter_queue);
+    _letter_queue.OrderBy(x => x.TrustPoints);
+
+    for (int i = 0; i < queuetmp.Count; i++)
+    {
+
+        if (queuetmp.ToList()[i] != _letter_queue.ToList()[i])
+        {
+            _letter_queue.ToList()[i].TrustPoints += 0.25;
+        }
+
+    }
+
     mutex1.ReleaseMutex();
 }
 void AddAnnouncement(object sender, Announcement a) {
     
     mutex3.WaitOne();
     _announcement_queue.Enqueue(a);
+    Queue<Announcement> queuetmp = new Queue<Announcement>(_announcement_queue);
+    _announcement_queue.OrderBy(x => x.TrustPoints);
+
+    for (int i = 0; i < queuetmp.Count; i++)
+    {
+
+        if (queuetmp.ToList()[i] != _announcement_queue.ToList()[i])
+        {
+            _announcement_queue.ToList()[i].TrustPoints += 0.25;
+        }
+
+    }
+
     mutex3.ReleaseMutex();
 
 }
@@ -880,7 +917,6 @@ async void AnalizzaCodaLettere()
         Thread.Sleep(20);
     }
 }
-
 async void AnalizzaCodaAnnuncio() {
 
     while (true)
@@ -907,7 +943,7 @@ async void AnalizzaCodaAnnuncio() {
                     await telegramBot.CLEAR(testing.Announcer.TelegramId);
                     await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Announcer.TelegramId);
 
-
+                    testing.Announcer.WeeklyAnnouncement = true;
                     await telegramBot.Menu(testing.Announcer.TelegramId);
                     telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
                 }
@@ -940,6 +976,7 @@ async void AnalizzaCodaAnnuncio() {
                         await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Announcer.TelegramId);
 
 
+                        testing.Announcer.WeeklyAnnouncement = true;
                         await telegramBot.Menu(testing.Announcer.TelegramId);
                         telegramBot.DeleteWritingAnnouncement(testing.Announcer.TelegramId);
                     }
