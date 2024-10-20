@@ -1216,12 +1216,12 @@ namespace VMETA_1.Classes
                                             string link= $"https://t.me/{username}";
 
                                             keyboard = new InlineKeyboardMarkup(new[]
-                                                                                                                           {
-                                                                                                                                new[]
-                                                                                                                                {
-                                                                                                                                    new InlineKeyboardButton("Rispondi in privato") { Url = link }
-                                                                                                                                }
-                                                                                                                            });
+                                                       {
+                                                              new[]
+                                                              {
+                                                                 new InlineKeyboardButton("Rispondi in privato") { Url = link }
+                                                              }
+                                                       });
 
                                             mees=await botClient.SendTextMessageAsync(FromId, announcement.ToString(), replyMarkup: keyboard);
                                             ADDTOCHAT(FromId, mees.MessageId);
