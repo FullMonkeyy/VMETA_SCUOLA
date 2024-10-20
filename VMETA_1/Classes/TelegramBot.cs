@@ -528,6 +528,11 @@ namespace VMETA_1.Classes
                                     Announcement newannouncement = new Announcement();
 
                                     newannouncement.Announcer= schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));
+                                    int tmppp;
+                                    if (int.TryParse(newannouncement.Announcer.Classroom.Year, out tmppp))
+                                    {
+                                        newannouncement.ClassroomYEAR = tmppp;
+                                    }
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
                                         if (!(bool)WritingLetterss[FromId].AI_Analyzing)
@@ -972,7 +977,7 @@ namespace VMETA_1.Classes
                                 case "callback_data_39":
 
                                     Person per;
-                                    /* 
+                                    
                                    foreach (Announcement lett in schoolContext.Announcements.Include(x=> x.Announcer).ToList())
                                    {
                                        c = "ID_ANNOUNCEMENT_" + lett.id;
@@ -994,7 +999,7 @@ namespace VMETA_1.Classes
                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
-                                   ADDTOCHAT(FromId, mees.MessageId);*/
+                                   ADDTOCHAT(FromId, mees.MessageId);
                                     break;
 
                                 default:
@@ -1192,6 +1197,47 @@ namespace VMETA_1.Classes
                                         keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
                                         mees = await botClient.SendTextMessageAsync(FromId, "Premi questo pulsante per tornare al menù.", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
+
+                                    }
+                                    else if (callbackData.StartsWith("ID_ANNOUNCEMENT_"))
+                                    {
+                                        string classIdStr = callbackData.Split('_').ToList()[2];
+                                        int classId;
+                                        int.TryParse(classIdStr, out classId);
+                                        Announcement announcement = await schoolContext.Announcements.Include(x => x.Announcer).FirstOrDefaultAsync(y => y.id.Equals(classId));
+
+                                        //await SendMessage(announcement.ToString(), FromId);
+
+                                        try
+                                        {
+                                            var chat = await botClient.GetChatAsync(announcement.Announcer.TelegramId);
+
+                                            string username = chat.Username;
+                                            string link= $"https://t.me/{username}";
+
+                                            keyboard = new InlineKeyboardMarkup(new[]
+                                                                                                                           {
+                                                                                                                                new[]
+                                                                                                                                {
+                                                                                                                                    new InlineKeyboardButton("Rispondi in privato") { Url = link }
+                                                                                                                                }
+                                                                                                                            });
+
+                                            mees=await botClient.SendTextMessageAsync(FromId, announcement.ToString(), replyMarkup: keyboard);
+                                            ADDTOCHAT(FromId, mees.MessageId);
+
+                                            keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
+
+                                            mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al per tornare al menu,", replyMarkup: keyboard);
+                                            ADDTOCHAT(FromId, mees.MessageId);
+
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.WriteLine($"Errore: {ex.Message}");
+                                            
+                                        }
+
 
                                     }
                                     else
