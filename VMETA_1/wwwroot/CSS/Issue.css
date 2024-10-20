@@ -199,3 +199,12 @@
     border-radius: 16px 16px 0px 0px;
     
 }
+.bottonebypass {
+    padding:10px;
+    
+    margin-top:25px;
+    font-size: 25px;
+    font-family: Miofont;
+    border-radius: 15px;
+    
+}

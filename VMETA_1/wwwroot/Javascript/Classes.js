@@ -39,7 +39,7 @@ class Classroom {
 }
 class Problem {
 
-    constructor(classroom,description,person,secret,solution,title,category,id) {
+    constructor(classroom, description, person, secret, solution, title, category,aiforced,id) {
 
         this.classroom = classroom;
         this.description = description;
@@ -48,7 +48,8 @@ class Problem {
         this.solution = solution;
         this.title = title;
         this.category = category;
-        this.id=id
+        this.aiforced =aiforced;
+        this.id = id;
     }
 
 

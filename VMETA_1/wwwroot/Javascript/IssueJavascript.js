@@ -45,17 +45,17 @@ function GetIssue() {
 
 function UpdateDisplay(data) {
 
+   
 
     for (let i=0; i < data.length; i++) {
 
-        IssueList.push(new Problem(data[i]["classroom"], data[i]["description"], data[i]["person"], data[i]["secret"], data[i]["solution"], data[i]["title"], data[i]["category"], "div" + i))
+        IssueList.push(new Problem(data[i]["classroom"], data[i]["description"], data[i]["person"], data[i]["secret"], data[i]["solution"], data[i]["title"], data[i]["category"], data[i]["aiforced"] ,"div" + i))
 
 
         var divo = document.createElement("div");
         divo.id = "div" + i;
 
-        if (data[i]["aiForced"])
-            divo.style.backgroundColor = "yellow";
+
 
         divo.setAttribute("class", "ProblemCard");
         var Title = document.createElement("div");
@@ -74,11 +74,17 @@ function UpdateDisplay(data) {
             Description.innerHTML = "Problema della classe " + data[i]["classroom"];
 
         var bottomcard = document.createElement("div");
+
         bottomcard.setAttribute("class", "BottomCard");
         bottomcard.appendChild(Description)
         bottomcard.appendChild(category)
 
 
+        if (data[i]["aiForced"]) {
+            divo.style.backgroundColor = "yellow";
+          
+        }
+                
         divo.appendChild(Title);
         divo.appendChild(bottomcard);     
 
@@ -121,6 +127,11 @@ function DisplayProblem(id) {
 
 
     document.getElementById("Solution").innerHTML = Issue.solution;
-   
-
+    var butt;
+    if (Issue.aiforced) {
+        butt = document.createElement("button")
+        butt.innerHTML = "Conferma ByPass"
+        butt.setAttribute("class", "bottonebypass");
+        document.getElementById("problemVisual").appendChild(butt);
+    }
 }
