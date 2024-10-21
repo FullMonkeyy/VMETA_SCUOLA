@@ -1138,8 +1138,8 @@ namespace VMETA_1.Classes
                                     foreach (Person persona in topten)
                                     {
 
-                                        totaltopstr += $"\n\n- {counterposition}# {persona.ToString()}";
-
+                                        totaltopstr += $"\n\n- {counterposition}# {persona.ToString()} [{persona.TrustPoints} TrP.]";
+                                        counterposition++;
                                     }
                                     classificaMtx.ReleaseMutex();
                                     await SendMessage(totaltopstr, FromId);
