@@ -41,9 +41,10 @@ Mutex mutex3 = new Mutex();
 Semaphore semaphore = new Semaphore(1, 2000);
 
 
-//API DEV:7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM
-//API RELEASE: 7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU
-TelegramBot telegramBot = new TelegramBot("7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU", schoolContext);
+string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
+string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
+
+TelegramBot telegramBot = new TelegramBot(apirelease, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
