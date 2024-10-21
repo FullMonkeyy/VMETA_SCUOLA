@@ -49,7 +49,7 @@ function UpdateDisplay(data) {
 
     for (let i=0; i < data.length; i++) {
 
-        IssueList.push(new Problem(data[i]["classroom"], data[i]["description"], data[i]["person"], data[i]["secret"], data[i]["solution"], data[i]["title"], data[i]["category"], data[i]["aiforced"] ,"div" + i))
+        IssueList.push(new Problem(data[i]["classroom"], data[i]["description"], data[i]["person"], data[i]["secret"], data[i]["solution"], data[i]["title"], data[i]["category"], data[i]["aiForced"] ,"div" + i,data[i]["id"]))
 
 
         var divo = document.createElement("div");
@@ -103,35 +103,70 @@ function UpdateDisplay(data) {
 
 
 }
+var issueee;
 function DisplayProblem(id) {
 
-    var Issue;
     idIssue = id;
     for (let i = 0; i < IssueList.length; i++) {
         if (IssueList[i].id == id) {
-            Issue = IssueList[i];
+            issueee = IssueList[i];
             break;
         }
     }
 
-    document.getElementById("ProblemTitle").innerHTML = Issue.title;
+    document.getElementById("ProblemTitle").innerHTML = issueee.title;
 
-    if(Issue.secret=="false")
-    document.getElementById("Person").innerHTML = Issue.person;
-    else document.getElementById("Person").innerHTML = "Rappresentante della classe "+Issue.classroom;
+    if (issueee.secret=="false")
+        document.getElementById("Person").innerHTML = issueee.person;
+    else document.getElementById("Person").innerHTML = "Rappresentante della classe " + issueee.classroom;
 
-    document.getElementById("Category").innerHTML = Issue.category;
-
-
-    document.getElementById("Description").innerHTML = Issue.description;
+    document.getElementById("Category").innerHTML = issueee.category;
 
 
-    document.getElementById("Solution").innerHTML = Issue.solution;
+    document.getElementById("Description").innerHTML = issueee.description;
+
+
+    document.getElementById("Solution").innerHTML = issueee.solution;
     var butt;
-    if (Issue.aiforced) {
+    if (issueee.aiforced) {
         butt = document.createElement("button")
         butt.innerHTML = "Conferma ByPass"
+   
+        butt.addEventListener("click", () => {
+            AIModify();
+        });
         butt.setAttribute("class", "bottonebypass");
         document.getElementById("problemVisual").appendChild(butt);
+        document.getElementById("problemVisual").style.backgroundColor = "orange";
     }
+    
 }
+async function AIModify() {
+
+    id = issueee.trueid;
+    await fetch('api/ModificaAI/'+id, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer your-access-token' // If authentication is required
+        },
+        body: "we"
+    })
+        .then(response => {
+            if (!response.ok) {
+                // Handle error response
+                return response.json().then(err => { throw err });
+            }
+            // Successfully updated
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update successful:', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+
+    window.location.reload();
+
+} 

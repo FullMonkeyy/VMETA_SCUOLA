@@ -13,11 +13,10 @@
 
 #option {
     background-color: #190342;
-    height: 100%;
-    width: 420px;
+    height: 98%;
+    width: 20.5%;
     border-radius: 10px;
-    flex-wrap: wrap;
-    position:fixed;
+    position: absolute;
 }
 
 .selection {
@@ -33,6 +32,7 @@
     box-shadow: 0px 5px 20px 5px;
     font-size: 30px;
     font-family: Miofont;
+    cursor: pointer;
 }
 
     .selection:hover {
@@ -51,8 +51,8 @@
 }
 
 #main {
-    height: 98%;;
-    width: 1600px;
+    height: 98%;
+    width: 78.2%;
     background-color: #190342;
     position: absolute;
     right: 10px;
@@ -61,7 +61,7 @@
 
 #chat {
     width: 1400px;
-    height: 90%;
+    height: 900px;
     position: relative;
     top: 50%;
     left: 50%;

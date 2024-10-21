@@ -174,11 +174,11 @@ namespace VMETA_1.Classes
                             {
                                 await CLEAR(id);
                                 await SendMessage("Vanessa Meta avviata", id);
-
+                                await SendMessage("--- Versione 0.1 BetaRelease ---", id, false);
 
                                 if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                                 {
-
+                                    
                                     await Menu(id);
                                 }
                                 else
@@ -1565,6 +1565,23 @@ namespace VMETA_1.Classes
                           );
                     ADDTOCHAT(id, mes.MessageId);
                 }catch(Exception e) { }
+            }
+        }
+        public async Task SendMessage(string text, long id,bool isStoredInChat)
+        {
+
+            if (id != -1)
+            {
+                try
+                {
+                    var mes = await botClient.SendTextMessageAsync(
+                          chatId: id,
+                          text: text
+                          );
+                    if(isStoredInChat)
+                    ADDTOCHAT(id, mes.MessageId);
+                }
+                catch (Exception e) { }
             }
         }
         public async Task MandaPulsantiCategorie(long id)
