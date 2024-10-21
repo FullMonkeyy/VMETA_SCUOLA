@@ -1259,7 +1259,7 @@ namespace VMETA_1.Classes
                                             tmp5.MakeYourDecision(selected);
                                             
                                             schoolContext.SaveChanges();
-                                            await SendMessage("Hai votato \"" + selected + "\"\n\nTi verrà assegnato 1 TrustPoint", FromId);
+                                            await SendMessage("Hai votato \"" + selected + "\"\n\nTi verranno assegnati 0.75 TrustPoints", FromId);
                                             p = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
                                             p.TrustPoints += 0.75;
                                             schoolContext.SaveChanges();
