@@ -111,8 +111,8 @@ namespace VMETA_1.Classes
 
                             ADDTOCHAT(id, update.Message.MessageId);
 
-                            bool convalidazione = false;                                                 
-
+                            bool convalidazione = false;
+                            bool writing = false;
                             if (text_message.StartsWith("/code:"))
                             {
 
@@ -191,7 +191,8 @@ namespace VMETA_1.Classes
 
                                 if (WritingProblems.ContainsKey(id))
                                 {
-                                    if (WritingProblems[id].Category != null && WritingProblems[id].isStudente != null)
+                                    writing = true;
+                                    if (WritingProblems[id].Category != null && WritingProblems[id].isStudente != null && !WritingProblems[id].AI_Analyzing)
                                     {
                                         Problem problem = WritingProblems[id];
 
@@ -269,84 +270,86 @@ namespace VMETA_1.Classes
                                         }
                                     }
 
-
-
                                 }
-                                else if (WritingLetterss.ContainsKey(id))
+                                if (WritingLetterss.ContainsKey(id))
+                                {
+                                    if (!(bool)WritingLetterss[id].AI_Analyzing)
+                                    {
+                                        writing = true;
+                                        if (text_message.Contains("<") && text_message.Contains(">"))
+                                        {
+
+                                            await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >)\nRiscrivi il titolo. ", id);
+
+                                        }
+                                        else if (text_message.Length > 250)
+                                        {
+                                            await SendMessage("Il messaggio non può superare la lunghezza di 250 caratteri\nNumero caratteri inseriti: " + text_message.Length, id);
+                                        }
+                                        else
+                                        {
+                                            WritingLetterss[id].Body = text_message;
+                                            await RiepilogoLettera(id);
+                                        }
+                                    }
+                                }
+                                if (WritingAnnoucement.ContainsKey(id))
                                 {
 
-                                    if (text_message.Contains("<") && text_message.Contains(">"))
+                                    if (!WritingAnnoucement[id].AI_Analyzing)
                                     {
-
-                                        await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >)\nRiscrivi il titolo. ", id);
-
-                                    }
-                                    else if (text_message.Length > 250)
-                                    {
-                                        await SendMessage("Il messaggio non può superare la lunghezza di 250 caratteri\nNumero caratteri inseriti: " + text_message.Length, id);
-                                    }
-                                    else
-                                    {
-                                        WritingLetterss[id].Body = text_message;
-                                        await RiepilogoLettera(id);
-                                    }
-
-                                }
-                                else if (WritingAnnoucement.ContainsKey(id))
-                                {
-
-
-                                    if (text_message.Contains("<") && text_message.Contains(">"))
-                                    {
-
-                                        await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\nRiscrivi il titolo.", id);
-
-                                    }
-                                    else if (text_message.Length > 500)
-                                    {
-                                        await SendMessage("Il messaggio non può superare la lunghezza di 500 caratteri\nNumero caratteri inseriti: " + text_message.Length, id);
-                                    }
-                                    else
-                                    {
-                                        if (WritingAnnoucement[id].Title == null)
-                                        {
-                                            WritingAnnoucement[id].Title = text_message;
-
-                                            if (WritingAnnoucement[id].Description == null)
-                                                await SendMessage("Bene adesso scrivi la descrizione", id);
-                                        }
-                                        else if (WritingAnnoucement[id].Description == null)
+                                        writing = true;
+                                        if (text_message.Contains("<") && text_message.Contains(">"))
                                         {
 
-                                            if (text_message.Contains("<") && text_message.Contains(">"))
-                                            {
+                                            await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\nRiscrivi il titolo.", id);
 
-                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\nRiscrivi il titolo.", id);
-
-                                            }
-                                            else if (text_message.Length > 400)
-                                            {
-                                                await SendMessage("Il messaggio non può superare la lunghezza di 400 caratteri\nNumero caratteri inseriti: " + text_message.Length, id);
-                                            }
-                                            else
-                                            {
-                                                WritingAnnoucement[id].Description = text_message;
-
-
-
-                                            }
                                         }
-
-                                        if (WritingAnnoucement[id].Description != null && WritingAnnoucement[id].Title != null)
+                                        else if (text_message.Length > 500)
                                         {
-                                            //Inviare il riepilogo
-                                            await RiepilogoAnnuncio(id);
+                                            await SendMessage("Il messaggio non può superare la lunghezza di 500 caratteri\nNumero caratteri inseriti: " + text_message.Length, id);
+                                        }
+                                        else
+                                        {
+                                            if (WritingAnnoucement[id].Title == null)
+                                            {
+                                                WritingAnnoucement[id].Title = text_message;
+
+                                                if (WritingAnnoucement[id].Description == null)
+                                                    await SendMessage("Bene adesso scrivi la descrizione", id);
+                                            }
+                                            else if (WritingAnnoucement[id].Description == null)
+                                            {
+
+                                                if (text_message.Contains("<") && text_message.Contains(">"))
+                                                {
+
+                                                    await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\nRiscrivi il titolo.", id);
+
+                                                }
+                                                else if (text_message.Length > 400)
+                                                {
+                                                    await SendMessage("Il messaggio non può superare la lunghezza di 400 caratteri\nNumero caratteri inseriti: " + text_message.Length, id);
+                                                }
+                                                else
+                                                {
+                                                    WritingAnnoucement[id].Description = text_message;
+
+
+
+                                                }
+                                            }
+
+                                            if (WritingAnnoucement[id].Description != null && WritingAnnoucement[id].Title != null)
+                                            {
+                                                //Inviare il riepilogo
+                                                await RiepilogoAnnuncio(id);
+                                            }
                                         }
                                     }
 
-
-                                }
-                                else
+                                }                               
+                                if(!writing)
                                 {
                                     await CLEAR(id);
                                     await Menu(id);
@@ -419,7 +422,7 @@ namespace VMETA_1.Classes
                                     }
                                     if(WritingAnnoucement.ContainsKey(FromId))
                                     {
-                                        if (!(bool)WritingLetterss[FromId].AI_Analyzing)
+                                        if (!(bool)WritingAnnoucement[FromId].AI_Analyzing)
                                             WritingAnnoucement.Remove(FromId);
                                     }
                                   
@@ -458,7 +461,7 @@ namespace VMETA_1.Classes
                                     }
                                     if (WritingAnnoucement.ContainsKey(FromId))
                                     {
-                                        if (!(bool)WritingLetterss[FromId].AI_Analyzing)
+                                        if (!(bool)WritingAnnoucement[FromId].AI_Analyzing)
                                             WritingAnnoucement.Remove(FromId);
                                     }
                                     WritingProblems.Add(FromId, newproblem);
@@ -544,7 +547,7 @@ namespace VMETA_1.Classes
                                 case "callback_data_8":
 
                                     Person pet = await schoolContext.Students.Include(x=> x.Announcements).FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
-                                    bool procced = false;
+                                    bool procced = true;
                                     DateTime tmp = DateTime.Now;
                                     
 
@@ -618,7 +621,7 @@ namespace VMETA_1.Classes
                                     //write to another classroom
 
                                     pet = await schoolContext.Students.Include(x => x.Letters).FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));                                    
-                                    procced = false;
+                                    procced = true;
                                     tmp = DateTime.Now;
 
                                    
@@ -1301,7 +1304,7 @@ namespace VMETA_1.Classes
                                         }
                                         if (WritingAnnoucement.ContainsKey(FromId))
                                         {
-                                            if (!(bool)WritingLetterss[FromId].AI_Analyzing)
+                                            if (!(bool)WritingAnnoucement[FromId].AI_Analyzing)
                                                 WritingAnnoucement.Remove(FromId);
                                         }
                                         WritingLetterss.Add(FromId, letter);
@@ -1765,9 +1768,14 @@ namespace VMETA_1.Classes
                                                                         },
 
                                 });
-            WritingLetterss[id].Title = WritingLetterss[id].Body;
-            var res = await botClient.SendTextMessageAsync(id, $"Perfetto! Ecco qua il tuo messaggio:\n{WritingLetterss[id].Body}\n\nConfermi ciò che hai scritto?", replyMarkup: keyboard);
-            ADDTOCHAT(id, res.MessageId);
+
+            if (WritingLetterss.ContainsKey(id))
+            {
+                WritingLetterss[id].Title = WritingLetterss[id].Body;
+                var res = await botClient.SendTextMessageAsync(id, $"Perfetto! Ecco qua il tuo messaggio:\n{WritingLetterss[id].Body}\n\nConfermi ciò che hai scritto?", replyMarkup: keyboard);
+                ADDTOCHAT(id, res.MessageId);
+            }
+            else { await SendMessage("Recapito della lettera fallito, riprovare", id); await Menu(id); }
         }
 
         public async Task RiepilogoAnnuncio(long id)
