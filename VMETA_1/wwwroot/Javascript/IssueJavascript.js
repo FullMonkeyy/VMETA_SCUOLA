@@ -13,7 +13,7 @@ document.getElementById("deleteButton").addEventListener("click", async () => {
     const options = {
         method: 'DELETE' // Metodo della richiesta
     };
-    const url = "/api/DeleteIssue/" + Issue.title;
+    const url = "/api/DeleteIssue/" + Issue.trueid;
     // Effettua la richiesta utilizzando fetch()
     await fetch(url, options)
         .then(response => {
