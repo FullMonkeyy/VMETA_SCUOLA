@@ -330,11 +330,11 @@ app.MapDelete("/api/DeletePerson/{id}", async (string id) => {
 
 
 });
-app.MapDelete("/api/DeleteIssue/{id}", async (string id) => {
+app.MapDelete("/api/DeleteIssue/{id}", async (int id) => {
 
 
 
-    Problem todelete = schoolContext.Problems.FirstOrDefault(x => x.Title.Equals(id));
+    Problem todelete = schoolContext.Problems.FirstOrDefault(x => x.Id.Equals(id));
 
     if (todelete != null)
     {
