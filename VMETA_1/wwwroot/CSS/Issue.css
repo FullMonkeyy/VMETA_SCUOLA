@@ -180,22 +180,35 @@
         background-color: darkred;
         transition: background-color 0.5s;
     }
-    .divIssue {
-        background-color: blue;
-        width: fit-content;
-        height: fit-content;
-        font-size: 25px;
-        padding: 10px;
-        border-radius: 0px 16px 16px;
-        margin-bottom: 10px;
-        background-color: #602770;
-        box-shadow: 0px 5px 20px 5px black;
-    }
+.divIssue {
+    background-color: blue;
+    width: fit-content;
+    max-width: 1170px;
+    height: fit-content;
+
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 25px;
+    padding: 10px;
+    border-radius: 0px 16px 16px;
+    margin-bottom: 10px;
+    background-color: #602770;
+    box-shadow: 0px 5px 20px 5px black;
+}
 .labelIssue {
     background-color: yellow;
     background-color: purple;
     font-size: 20px;
     padding: 5px;
     border-radius: 16px 16px 0px 0px;
+    
+}
+.bottonebypass {
+    padding:10px;
+    
+    margin-top:25px;
+    font-size: 25px;
+    font-family: Miofont;
+    border-radius: 15px;
     
 }

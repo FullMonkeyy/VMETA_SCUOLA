@@ -375,10 +375,19 @@ app.MapDelete("/api/DeletePool/{id}", async (int id) =>
 //PUT
 app.MapPut("/api/ModificaAI/{id}", async (int id) => { 
 
-    Problem problem = schoolContext.Problems.FirstOrDefault(x=> x.Id.Equals(id));   
+    Problem problem = schoolContext.Problems.FirstOrDefault(x=> x.Id.Equals(id));
+
+    if (problem!=null)
+    {
+        problem.AI_Forced = false;
+        schoolContext.SaveChanges();
+        return Results.Ok();
+    }
+    else return Results.BadRequest();
 
 
 });
+
 
 /*
  
