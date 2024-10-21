@@ -34,12 +34,13 @@ namespace VMETA_1.Classes
         ReceiverOptions receiverOptions;
         CancellationTokenSource cts;
         List<RegisterRequest> registerRequests;
-
+        List<Person> topten;
+        Thread Classifica;
         Dictionary<long,Problem> WritingProblems;
         Dictionary<long, Letter> WritingLetterss;
         Dictionary<long, Announcement> WritingAnnoucement;
         Dictionary<long, int> StateCounter;
-
+        Mutex classificaMtx;
         Dictionary<long, Dictionary<DateTime,int>> MesssagesIdPerChat;
         bool active;
         SemaphoreSlim mtx;
@@ -76,8 +77,13 @@ namespace VMETA_1.Classes
             cts = new CancellationTokenSource();
             schoolContext = sc;
             DavideID = 1140272456;
-
-
+            topten = new List<Person>();
+            classificaMtx = new Mutex();
+            CreateRank();
+            Classifica = new Thread(TrustPointsRank);
+            Classifica.IsBackground = true;
+            Classifica.Start();
+ 
             receiverOptions = new()
             {
                 AllowedUpdates = Array.Empty<UpdateType>() // receive all update types except ChatMember related updates
@@ -1121,7 +1127,27 @@ namespace VMETA_1.Classes
                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
                                    ADDTOCHAT(FromId, mees.MessageId);
                                     break;
+                                case "callback_data_40":
 
+                                    string totaltopstr = "CLASSIFICA TOP 10";
+                                    classificaMtx.WaitOne();
+                                    int counterposition = 1;
+                                    foreach (Person persona in topten)
+                                    {
+
+                                        totaltopstr += $"\n\n- {counterposition}# {persona.ToString()}";
+
+                                    }
+                                    classificaMtx.ReleaseMutex();
+                                    await SendMessage(totaltopstr, FromId);
+
+                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
+
+                                    mees = await botClient.SendTextMessageAsync(FromId, "Premi questo pulsante per tornare al menu", replyMarkup: keyboard);
+                                    ADDTOCHAT(FromId, mees.MessageId);
+
+
+                                    break;
                                 default:
                                    
                                     if (callbackData.StartsWith("ID_PROBLEM_"))
@@ -1537,6 +1563,13 @@ namespace VMETA_1.Classes
                                      InlineKeyboardButton.WithCallbackData("📊 Vota i sondaggi 📊", "callback_data_24"),
 
                                 }
+                                     ,
+                                     new []
+                                {
+
+                                     InlineKeyboardButton.WithCallbackData("TOP 10 TrustPoints", "callback_data_40"),
+
+                                }
                });
 
                 var mes = await botClient.SendTextMessageAsync(id, $"Ciao {p.Name}, benvenuto su VMeta.\n\n-🌟🌟I tuoi TrustPoints: {p.TrustPoints}🌟🌟\n\n-📊📊Sondaggi da votare: {p.LastDecision}📊📊\n\nClicca il pulsante per la funzionalità interessata", replyMarkup: keyboard);
@@ -1855,6 +1888,45 @@ namespace VMETA_1.Classes
          
 
         }
+        void TrustPointsRank()
+        {
+            while (true)
+            {
+                // Ottieni l'orario corrente
+                DateTime now = DateTime.Now;
 
+                // Calcola il prossimo orario delle 8:00
+                DateTime nextRun = now.Hour >= 8 ? now.Date.AddDays(1).AddHours(8) : now.Date.AddHours(8);
+
+                // Calcola quanto tempo manca fino al prossimo orario delle 8:00
+                TimeSpan timeToWait = nextRun - now;
+
+                Console.WriteLine($"Prossima esecuzione alle: {nextRun}");
+
+                // Metti il thread in pausa fino a quando non arriva l'orario specificato
+                Thread.Sleep(timeToWait);
+
+                // Esegui la tua azione
+                CreateRank();
+            }
+        }
+        void CreateRank()
+        {
+
+
+
+
+            List<Person> people = new List<Person>(schoolContext.Students);
+
+            people.Sort((x, y) => x.TrustPoints.CompareTo(y.TrustPoints));
+
+            classificaMtx.WaitOne();
+            for (int i = 0; i < people.Count; i++)
+            {
+                topten.Add(people[i]);
+            }
+            classificaMtx.ReleaseMutex();
+
+        }
     }  
 }
