@@ -390,298 +390,6 @@ app.MapPut("/api/ModificaAI/{id}", async (int id) => {
 });
 
 
-/*
- 
-app.MapGet("/api/Start/{key}", (int key) =>
-{
-
-
-
-
-
-    return Results.Ok("grande");
-});
-app.MapGet("/api/GetResponse/{key}", async (int key) => {
-
-    mutex.WaitOne();
-    string response = BotResponse;
-    mutex.ReleaseMutex();
-    return new Response(response);
-
-});
-app.MapGet("/api/Clear/{key}", async (int key) =>
-{
-    BotResponse = "";
-    return Results.Ok("Completato");
-});
-app.MapGet("/api/GetStudents/{key}", async (int key) => {
-
-    List<PersonModel> models = new List<PersonModel>();
-
-    foreach (Person p in schoolContext.Students.Include(x => x.Classroom).Include(x => x.Problem))
-    {
-        models.Add(new PersonModel(p));
-    }
-
-    return Results.Ok(models);
-
-});
-app.MapGet("/api/GetClassrooms/{key}", async (int key) => {
-
-
-    List<ClassroomModel> models = new List<ClassroomModel>();
-
-    foreach (Classroom cl in schoolContext.Classrooms.Include(x => x.People).Include(x => x.Problems))
-    {
-        models.Add(new ClassroomModel(cl));
-    }
-
-    return Results.Ok(models);
-
-});
-app.MapGet("/api/GetProblems/{key}", async (int key) =>
-{
-
-    List<ProblemModel> models = new List<ProblemModel>();
-
-    foreach (Problem p in schoolContext.Problems.Include(x => x.Person))
-    {
-        models.Add(new ProblemModel(p));
-    }
-
-    return Results.Ok(models);
-
-});
-app.MapGet("/api/GetPools/{key}", async (int key) =>
-{
-
-    List<PoolModel> models = new List<PoolModel>();
-
-    foreach (Pool p in schoolContext.Pools.Include(x => x.Votes))
-    {
-        models.Add(new PoolModel(p));
-    }
-
-    return Results.Ok(models);
-
-});
-//POST
-app.MapPost("/api/SendMessage/{key}", async (JsonObject json, int key) =>
-{
-    string jasonstring = json.ToString();
-
-    Message? message = JsonConvert.DeserializeObject<Message>(jasonstring);
-
-
-    await _core.TalkWithVanessa(message.Content);
-
-    /////////////////////////////////////////
-    return Results.Accepted("id libro:");
-
-});
-app.MapPost("/api/SendPerson/{key}", (JsonObject json, int key  ) =>
-{
-    //string jasonstring = json.ToString();
-    var ja = json.ToArray();
-    // Message? message = JsonConvert.DeserializeObject<Message>(jasonstring);
-    //0 nome 1 cognome 2 classe 3 birth 4 email 5 cellphone 6 Telegramcode request
-    Console.WriteLine(json.ToString());
-    string classe = ja[2].Value.ToString();
-    string year = classe[0] + "";
-    string sect = classe[1] + "";
-    string spec = classe.Substring(2);
-    Classroom tmp = schoolContext.Classrooms.FirstOrDefault(x => x.Year.Equals(year) && x.Section.Equals(sect) && x.Specialization.Equals(spec));
-    string name = "cazzo";
-
-
-    if (tmp != null)
-    {
-
-        string Name = ja[0].Value.ToString();
-        string Cognome = ja[1].Value.ToString();
-        string email = ja[4].Value.ToString();
-        string Phonw = ja[5].Value.ToString();
-        string TelegramCODE = ja[6].Value.ToString();
-        bool check;
-        bool.TryParse(ja[7].Value.ToString(), out check);
-        if (Name.Length > 0)
-        {
-            Person p = new Person(Name, Cognome, DateTime.MinValue, tmp, -1, email, Phonw, check);
-
-            if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE))
-            {
-
-                schoolContext.Students.Add(p);
-                schoolContext.SaveChanges();
-                return Results.Accepted("Operation succed");
-            }
-            else return Results.BadRequest("Codice telegram già preso");
-
-        }
-
-    }
-    /////////////////////////////////////////
-    return Results.BadRequest("Operation failed");
-
-});
-app.MapPost("/api/SendPool/{key}", async (JsonObject json, int key) => {
-
-    if (json != null)
-    {
-        var ja = json.ToArray();
-        string titolo = ja[0].Value.ToString();
-        string descrizione = ja[1].Value.ToString();
-        List<string> option = new List<string>();
-
-        var cose = ja[2].Value;
-        for (int i = 0; i < cose.AsArray().LongCount(); i++)
-        {
-
-            option.Add(cose.AsArray()[i].ToString());
-
-        }
-
-        bool rappresentante;
-        bool.TryParse(ja[3].Value.ToString(), out rappresentante);
-
-        Pool newpool = new Pool(titolo, descrizione, option, rappresentante);
-        schoolContext.Pools.Add(newpool);
-        schoolContext.SaveChanges();
-        Decision d;
-        if (!rappresentante)
-        {
-
-            foreach (Person p in schoolContext.Students.Include(x => x.Decisions))
-            {
-
-                d = new Decision(p, newpool);
-                schoolContext.Decisions.Add(d);
-
-                newpool.AddDecision(d);
-                p.Decisions.Add(d);
-
-                await NotificaNuovoPool(newpool.Titolo, p);
-
-            }
-            schoolContext.SaveChanges();
-        }
-        else
-        {
-
-            foreach (Person p in schoolContext.Students.Include(x => x.Decisions).Where(x => x.isJustStudent.Equals(false)))
-            {
-
-
-                d = new Decision(p, newpool);
-                schoolContext.Decisions.Add(d);
-
-                newpool.AddDecision(d);
-                p.Decisions.Add(d);
-                await NotificaNuovoPool(newpool.Titolo, p);
-
-            }
-            schoolContext.SaveChanges();
-        }
-
-
-    }
-    Console.WriteLine("WE");
-});
-app.MapPost("/api/SendVoice/{key}", async (IFormFile file, int key) =>
-{
-    if (file == null || file.Length == 0)
-    {
-        return Results.BadRequest("Nessun file caricato.");
-    }
-
-    // Definisci il percorso in cui salvare il file
-    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-
-    // Crea la cartella "uploads" se non esiste
-    if (!Directory.Exists(uploadPath))
-    {
-        Directory.CreateDirectory(uploadPath);
-    }
-
-    // Salva il file con il nome originale
-    var filePath = Path.Combine(uploadPath, file.FileName);
-
-    using (var stream = new FileStream(filePath, FileMode.Create))
-    {
-        await file.CopyToAsync(stream);
-    }
-
-    return Results.Ok(new { filePath });
-});
-//DELETE
-app.MapDelete("/api/DeletePerson/{id}/{key}", async (string id, int key) => {
-
-    List<string> tmp = id.Trim().Split(' ').ToList();
-
-    string Name = tmp[0];
-    string Cognome = string.Join(" ", tmp.Skip(1));
-
-
-    Person todelete = schoolContext.Students.FirstOrDefault(x => x.Name.Equals(Name) && x.Surname.Equals(Cognome));
-
-    if (todelete != null)
-    {
-
-        todelete.Problem = null;
-        todelete.Classroom = null;
-
-        schoolContext.Students.Remove(todelete);
-        schoolContext.SaveChanges();
-        return Results.Accepted("Tolto");
-
-    }
-    else return Results.BadRequest("Non esiste il tizio in questione");
-
-
-});
-app.MapDelete("/api/DeleteIssue/{id}/{key}", async (string id, int key) => {
-
-
-
-    Problem todelete = schoolContext.Problems.FirstOrDefault(x => x.Title.Equals(id));
-
-    if (todelete != null)
-    {
-
-        todelete.Person = null;
-        todelete.Classroom = null;
-
-        schoolContext.Problems.Remove(todelete);
-        schoolContext.SaveChanges();
-        return Results.Accepted("Tolto");
-
-    }
-    else return Results.BadRequest("Non esiste il tizio in questione");
-
-
-});
-app.MapDelete("/api/DeletePool/{id}/{key}", async (int id, int key) =>
-{
-    Pool todelete = await schoolContext.Pools.FirstOrDefaultAsync(x => x.Id.Equals(id));
-    if (todelete != null)
-    {
-
-
-        schoolContext.Decisions.RemoveRange(todelete.Votes);
-
-
-        schoolContext.SaveChanges();
-
-
-        schoolContext.Pools.Remove(todelete);
-        schoolContext.SaveChanges();
-        return Results.Accepted("Tolto");
-
-    }
-    else return Results.BadRequest("Non esiste il tizio in questione");
-
-});
-*/
 async Task NotificaNuovoPool(string title, Person p)
 {
 
@@ -695,11 +403,6 @@ async Task NotificaNuovoPool(string title, Person p)
         await telegramBot.SendMessage($"{title.ToUpper()}\n\nCiao, è appena stato aggiunto un nuovo sondaggio!\nFai valere la tua opinione.", p.TelegramId);
     }
 
-
-
-
-
-
 }
 
 
@@ -709,7 +412,7 @@ void AddProblem(object sendere, Problem p)
  
     _problem_queue.Enqueue(p);
     Queue<Problem> queuetmp = new Queue<Problem>(_problem_queue);
-    _problem_queue.OrderBy(x => x.TrustPoints);
+    _problem_queue.OrderByDescending(x => x.TrustPoints);
 
     for (int i = 0; i < queuetmp.Count; i++) {
 
@@ -731,7 +434,7 @@ void AddLetter(object sender, Letter l)
     mutex1.WaitOne();
     _letter_queue.Enqueue(l);
     Queue<Letter> queuetmp = new Queue<Letter>(_letter_queue);
-    _letter_queue.OrderBy(x => x.TrustPoints);
+    _letter_queue.OrderByDescending(x => x.TrustPoints);
 
     for (int i = 0; i < queuetmp.Count; i++)
     {
@@ -753,7 +456,7 @@ void AddAnnouncement(object sender, Announcement a) {
     mutex3.WaitOne();
     _announcement_queue.Enqueue(a);
     Queue<Announcement> queuetmp = new Queue<Announcement>(_announcement_queue);
-    _announcement_queue.OrderBy(x => x.TrustPoints);
+    _announcement_queue.OrderByDescending(x => x.TrustPoints);
 
     for (int i = 0; i < queuetmp.Count; i++)
     {
@@ -799,9 +502,21 @@ async void AnalizzaCoda()
                 {
                     schoolContext.Problems.Add(testing);
                     schoolContext.SaveChanges();
+                   
+
                     await telegramBot.CLEAR(testing.Person.TelegramId);
                     await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
-
+                    bool soluzone = false;
+                    if(testing.Solution== "Nessuna soluzione proposta.")
+                    {
+                        await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
+                        testing.Person.TrustPoints += 0.25;
+                    }
+                    else if (testing.Solution != "-NOT SETTED5353453453435375698")
+                    {
+                       await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                        testing.Person.TrustPoints += 1;
+                    }
 
                     await telegramBot.Menu(testing.Person.TelegramId);
                     telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
@@ -1075,7 +790,7 @@ async Task FottiClassi()
     }
 
 }
-//await ResettaTutto();
+await ResettaTutto();
 async Task ResettaTutto()
 {
     foreach (Person p in schoolContext.Students)
