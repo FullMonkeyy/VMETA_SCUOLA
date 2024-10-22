@@ -790,7 +790,7 @@ async Task FottiClassi()
     }
 
 }
-await ResettaTutto();
+//await ResettaTutto();
 async Task ResettaTutto()
 {
     foreach (Person p in schoolContext.Students)
@@ -805,6 +805,8 @@ async Task ResettaTutto()
     schoolContext.Students.RemoveRange(schoolContext.Students);
     schoolContext.Pools.RemoveRange(schoolContext.Pools);
     schoolContext.Decisions.RemoveRange(schoolContext.Decisions);
+    schoolContext.Announcements.RemoveRange(schoolContext.Announcements);
+    schoolContext.Letters.RemoveRange(schoolContext.Letters);
     schoolContext.SaveChanges();
 
     await FottiClassi();
