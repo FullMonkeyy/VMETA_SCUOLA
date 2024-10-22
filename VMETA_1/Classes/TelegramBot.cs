@@ -1926,12 +1926,20 @@ namespace VMETA_1.Classes
 
             List<Person> people = new List<Person>(schoolContext.Students);
 
-            people.Sort((x, y) => x.TrustPoints.CompareTo(y.TrustPoints));
+            people.Sort((x, y) => y.TrustPoints.CompareTo(x.TrustPoints));
+
+            int counter = 0;
 
             classificaMtx.WaitOne();
+
+
+
             for (int i = 0; i < people.Count; i++)
             {
                 topten.Add(people[i]);
+                counter++;
+                if (counter == 10)
+                    break;
             }
             classificaMtx.ReleaseMutex();
 
