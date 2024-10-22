@@ -449,6 +449,7 @@ namespace VMETA_1.Classes
                                     newproblem.Person = schoolContext.Students.FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
                                     newproblem.TrustPoints = newproblem.Person.TrustPoints;
+                                    newproblem.TrustPoints += 2;
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
                                         if (!(bool)WritingLetterss[FromId].AI_Analyzing)
@@ -1919,9 +1920,6 @@ namespace VMETA_1.Classes
         }
         void CreateRank()
         {
-
-
-
 
             List<Person> people = new List<Person>(schoolContext.Students);
 

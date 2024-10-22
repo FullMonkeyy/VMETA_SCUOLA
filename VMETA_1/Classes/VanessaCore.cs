@@ -17,6 +17,8 @@ namespace VMETA_1.Classes
         {
             //DEV: http://localhost:11434
             //RELEASE: http://192.168.1.52:11434
+
+            //FAI ATTENZIONE AL MODELLO SCRITTO NELLA REQUEST
             ollama = new OllamaApiClient(new Uri("http://192.168.1.52:11434"));
            
             _messages = new List<Message>();

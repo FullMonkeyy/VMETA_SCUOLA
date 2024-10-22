@@ -44,7 +44,7 @@
             Announcements = new List<Announcement>();
             Phone = phone;
             DataInserimento = DateTime.Now;
-            this.isJustStudent = isStudent;
+            this.isJustStudent = !isStudent;
         }
         public override string ToString()
         {
