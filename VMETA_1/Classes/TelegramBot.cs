@@ -1827,7 +1827,6 @@ namespace VMETA_1.Classes
             }
             else { await SendMessage("Recapito della lettera fallito, riprovare", id); await Menu(id); }
         }
-
         public async Task RiepilogoAnnuncio(long id)
         {
             var keyboard = new InlineKeyboardMarkup(new[]
@@ -1926,14 +1925,10 @@ namespace VMETA_1.Classes
 
             List<Person> people = new List<Person>(schoolContext.Students);
 
-            people.Sort((x, y) => y.TrustPoints.CompareTo(x.TrustPoints));
-
-            int counter = 0;
-
+            people.Sort((x, y) => x.TrustPoints.CompareTo(y.TrustPoints));
+            
             classificaMtx.WaitOne();
-
-
-
+            topten.Clear();
             for (int i = 0; i < people.Count; i++)
             {
                 topten.Add(people[i]);
