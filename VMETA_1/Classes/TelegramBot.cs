@@ -1925,7 +1925,7 @@ namespace VMETA_1.Classes
 
             List<Person> people = new List<Person>(schoolContext.Students);
 
-            people.Sort((x, y) => x.TrustPoints.CompareTo(y.TrustPoints));
+            people.Sort((x, y) => y.TrustPoints.CompareTo(x.TrustPoints));
 
             int counter = 1;
             classificaMtx.WaitOne();
