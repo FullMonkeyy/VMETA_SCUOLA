@@ -565,7 +565,7 @@ async void AnalizzaCoda()
                        await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
                         testing.Person.TrustPoints += 1;
                     }
-
+                    schoolContext.SaveChanges();
                     await telegramBot.Menu(testing.Person.TelegramId);
                     telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
                 }
@@ -590,10 +590,22 @@ async void AnalizzaCoda()
                     {
                         schoolContext.Problems.Add(testing);
                         schoolContext.SaveChanges();
+
+
                         await telegramBot.CLEAR(testing.Person.TelegramId);
                         await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
-
-
+                        bool soluzone = false;
+                        if (testing.Solution == "Nessuna soluzione proposta.")
+                        {
+                            await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
+                            testing.Person.TrustPoints += 0.25;
+                        }
+                        else if (testing.Solution != "-NOT SETTED5353453453435375698")
+                        {
+                            await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                            testing.Person.TrustPoints += 1;
+                        }
+                        schoolContext.SaveChanges();
                         await telegramBot.Menu(testing.Person.TelegramId);
                         telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
                     }

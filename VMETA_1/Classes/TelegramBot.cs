@@ -1905,7 +1905,7 @@ namespace VMETA_1.Classes
         }
         void TrustPointsRank()
         {
-           
+            CreateRank();
             while (true)
             {
                 // Ottieni l'orario corrente
