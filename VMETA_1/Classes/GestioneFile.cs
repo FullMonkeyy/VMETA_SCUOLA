@@ -16,12 +16,14 @@ namespace VMETA_1.Classes
         static public string path1 = "C:\\Users\\irond\\source\\repos\\Progetto_Vanessa_Gemini_GUI\\Progetto_Vanessa_Gemini_GUI\\bin\\Debug\\net8.0-windows\\InizializeXMLConversation.xml";
         static public string path2 = @"C:\Users\irond\source\repos\Progetto_Vanessa_Gemini_GUI\Progetto_Vanessa_Gemini_GUI\bin\Debug\net8.0-windows\CronologiaMessaggiVanessa.xml";
         static public string path3 = @"bin\Debug\net8.0\CronologiaMessaggiVanessa.xml";
+        static public string _requestPath = @"RequestRegister.xml";
         static string _chatsPath = "TelegramChats.xml";
 
         static string ftpAddress = "ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";  // URL FTP di destinazione
         static string ftpUsername = "scapellatodavide";  // Nome utente FTP
         static string ftpPassword = "ft9pAyc9B5Zd";  // Password FTP
 
+        static Mutex _mtxRequest = new Mutex();
 
         static public string Read(string path)
         {
@@ -224,6 +226,62 @@ namespace VMETA_1.Classes
             return dct;
 
         }
+        static public void WriteXMLRequestRegister(List<RegisterRequest> listaRichieste)
+        {
+            StreamWriter sw=null;
+            try
+            {
+
+                _mtxRequest.WaitOne();
+                sw = new StreamWriter(_requestPath, false);
+                XmlSerializer xmls = new XmlSerializer(typeof(List<RegisterRequest>));
+                xmls.Serialize(sw, listaRichieste);
+                _mtxRequest.ReleaseMutex();
+                sw.Close();
+
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e);
+                if (sw != null)
+                    sw.Close();
+            }
+            
+
+        }
+        static public List<RegisterRequest> ReadXMLRequestRegister()
+        {
+            List<RegisterRequest> tmp = new List<RegisterRequest>();
+            StreamReader sw = null;
+            try
+            {
+
+                _mtxRequest.WaitOne();
+                if (File.Exists(_requestPath))
+                {
+                    sw = new StreamReader(_requestPath);
+                    XmlSerializer xmls = new XmlSerializer(typeof(List<RegisterRequest>));
+                    tmp.AddRange((List<RegisterRequest>)xmls.Deserialize(sw));
+                    _mtxRequest.ReleaseMutex();
+                    sw.Close();
+                }
+                else
+                {
+                    WriteXMLRequestRegister(tmp);
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                if(sw!=null)
+                sw.Close();
+
+            }
+
+            return tmp;
+        }
+
 
         static public void WriteFTP(string filePath)
         {

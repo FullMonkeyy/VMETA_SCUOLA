@@ -1,4 +1,21 @@
 ﻿GetStudents();
+
+document.getElementById("inp_src_cognomi").addEventListener("input", () => {
+
+    if (document.getElementById("inp_src_cognomi").value!="")
+        GetStudentsCognome();
+    else
+        GetStudents();
+
+});
+function GetStudentsCognome() {
+
+    fetch('api/SearchStudentsCognome/' + document.getElementById("inp_src_cognomi").value)
+        .then(response => response.json())
+        .then(data => DisplayStudents(data))
+        .catch(error => console.error("Unable get the students mannaggia"))
+
+}
 function GetStudents() {
 
     fetch('api/GetStudents')
@@ -31,7 +48,7 @@ function addClassrooms(data) {
 function DisplayStudents(Data) {
 
     var Container = document.getElementById("content");
-
+    Container.innerHTML = "";
     for (let i = 0; i < Data.length; i++) {
 
         var divo = document.createElement("div");

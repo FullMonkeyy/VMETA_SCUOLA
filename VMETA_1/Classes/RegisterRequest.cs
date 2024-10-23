@@ -10,7 +10,7 @@ namespace VMETA_1.Classes
         public bool isRegistred {  get; set; }
         DateTime _dtRequest;
         public DateTime date { get { return _dtRequest; } }
-
+        public RegisterRequest() { }
         public RegisterRequest(string n ,string s, string c)
         {
             Name = n;

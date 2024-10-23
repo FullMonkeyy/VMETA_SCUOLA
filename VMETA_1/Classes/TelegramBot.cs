@@ -33,7 +33,7 @@ namespace VMETA_1.Classes
         TelegramBotClient botClient;
         ReceiverOptions receiverOptions;
         CancellationTokenSource cts;
-        List<RegisterRequest> registerRequests;
+
         List<Person> topten;
         Thread Classifica;
         Dictionary<long,Problem> WritingProblems;
@@ -67,7 +67,7 @@ namespace VMETA_1.Classes
             QualityChecker = new Thread(CheckChatQuality);
             QualityChecker.IsBackground = true;
             QualityChecker.Start();
-            registerRequests = new List<RegisterRequest>();
+
             WritingProblems= new Dictionary<long,Problem>();
             WritingLetterss = new Dictionary<long, Letter>();
             WritingAnnoucement = new Dictionary<long, Announcement>();
@@ -130,8 +130,8 @@ namespace VMETA_1.Classes
                                     if (tmp.Length == 2)
                                     {
                                         string tmpcodice = tmp[1];
-
-                                        foreach (RegisterRequest r in registerRequests)
+                                        List<RegisterRequest> tmr = GestioneFile.ReadXMLRequestRegister();
+                                        foreach (RegisterRequest r in tmr)
                                         {
 
                                             if (r.Code.Equals(tmpcodice))
@@ -153,10 +153,12 @@ namespace VMETA_1.Classes
                                         if (convalidazione)
                                         {
 
-                                        RegisterRequest p = registerRequests.Find(x => x.isRegistred);
-                                        registerRequests.Remove(p);
-                                        await SendMessage($"Convalidazione riuscita!\nBenvenuto {p.Name}!\nSpero che ti potrò tornare utile!", id);
-                                        await Menu(id);
+                                            RegisterRequest p = tmr.Find(x => x.isRegistred);
+                                            tmr.Remove(p);
+                                            GestioneFile.WriteXMLRequestRegister(tmr);
+                                            await SendMessage($"Convalidazione riuscita!\nBenvenuto {p.Name}!\nSpero che ti potrò tornare utile!", id);
+                                            await Menu(id);
+
 
                                         }
                                         else
@@ -548,7 +550,7 @@ namespace VMETA_1.Classes
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
 
-                                    var mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    var mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
                                     break;
                                 case "callback_data_8":
@@ -703,7 +705,7 @@ namespace VMETA_1.Classes
                                         ADDTOCHAT(FromId, m.MessageId);
 
                                         keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
-                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
                                     }
@@ -903,7 +905,7 @@ namespace VMETA_1.Classes
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
 
                                     break;
@@ -1004,7 +1006,7 @@ namespace VMETA_1.Classes
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
                                     break;
                                 case "callback_data_32":
@@ -1030,7 +1032,7 @@ namespace VMETA_1.Classes
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
 
                                     break;
@@ -1128,7 +1130,7 @@ namespace VMETA_1.Classes
 
                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                   mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                   mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                    ADDTOCHAT(FromId, mees.MessageId);
                                     break;
                                 case "callback_data_40":
@@ -1194,22 +1196,25 @@ namespace VMETA_1.Classes
 
                                         foreach (Person stu in studenti)
                                         {
-                                            if (stu.TelegramId.Equals(FromId))
+                                            if (stu.TelegramId.Equals(FromId) || stu.TelegramId.Equals(-1))
                                                 continue;
                                                
                                             callback = "ID_STUDENTWRITING_" + stu.Id;
                                             InlineKeyboardButton bottone = InlineKeyboardButton.WithCallbackData(stu.ToString(), callback);
+                                            if (_c_counter > 1)
+                                            {
+                                                bottoni.Add(bottoniRiga);
+                                                bottoniRiga = new List<InlineKeyboardButton>();
+                                            }
                                             bottoniRiga.Add(bottone);
-                                            if (_c_counter <= 2)
+                                            if (_c_counter <= 1)
                                             {
                                                 _c_counter++;
 
                                             }
                                             else
                                             {
-                                                _c_counter = 0;
-                                                bottoni.Add(bottoniRiga);
-                                                bottoniRiga = new List<InlineKeyboardButton>();
+                                                _c_counter = 0;                                               
                                             }
                                         }
                                         if (_c_counter >= 0)
@@ -1223,7 +1228,7 @@ namespace VMETA_1.Classes
                                         ADDTOCHAT(FromId, m.MessageId);
 
                                         keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
-                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
 
@@ -1338,7 +1343,7 @@ namespace VMETA_1.Classes
                                         Person pe = await schoolContext.Students.FirstOrDefaultAsync(x => x.Id.Equals(studentId));
                                         if (per != null)
                                         {
-                                            await SendMessage($"Cosa vuoi che scriva a {pe.ToString()}?\n\nDigita pure al disotto di questo messaggio ciò che vuole comunicare. Farò da intermediaria.\nSi ricordano le normali norme di rispetto reciproco.", per.TelegramId);
+                                            await SendMessage($"Cosa vuoi che scriva a {pe.ToString()}?\n\nDigita pure qui sotto di questo messaggio ciò che vuole comunicare. Farò da intermediaria.\nSi ricordano le normali norme di rispetto reciproco.", per.TelegramId);
 
                                         }
                                         else
@@ -1582,9 +1587,11 @@ namespace VMETA_1.Classes
         }
         public bool RegisterNewAccountRequest(string name,string surname,string code)
         {
-            if (!registerRequests.Exists(x => x.Code.Equals(code)))
+            List<RegisterRequest> tmr = GestioneFile.ReadXMLRequestRegister();
+            if (!tmr.Exists(x => x.Code.Equals(code)))
             {
-                registerRequests.Add(new RegisterRequest(name, surname, code));
+                tmr.Add(new RegisterRequest(name, surname, code));
+                GestioneFile.WriteXMLRequestRegister(tmr);
                 return true;
             }
             else return false;

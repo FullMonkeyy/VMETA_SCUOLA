@@ -13,6 +13,8 @@ using System.Xml;
 using VMETA_1.Classes;
 using VMETA_1.Entities;
 using VMETA_1.Models;
+using System.Text;
+using System;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,11 @@ bool BUSY_VANESSA = false;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+List<RegisterRequest> TelegramCodes = new List<RegisterRequest>();
+
+EmailServiceVMeta emailServiceVMeta = new EmailServiceVMeta();
+//emailServiceVMeta.SendEmail("OGGETTO LETTERA3", "TITOLO DELLA LETTERA", "CORPO DELLA LETTERA");
 VanessaCore _core = null;
 SchoolContext schoolContext = new SchoolContext();
 Queue<Problem> _problem_queue = new Queue<Problem>();
@@ -44,7 +51,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
 
-TelegramBot telegramBot = new TelegramBot(apirelease, schoolContext);
+TelegramBot telegramBot = new TelegramBot(apidev, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
@@ -156,6 +163,17 @@ app.MapGet("/api/GetPools", async () =>
     return Results.Ok(models);
 
 });
+app.MapGet("/api/SearchStudentsCognome/{cognome}", async (string cognome) => {
+
+    List<PersonModel> tmp = new List<PersonModel>();
+    foreach(Person p in schoolContext.Students.Include(x=> x.Classroom).Where(x=> x.Surname.ToLower().StartsWith(cognome.ToLower())))
+    {
+        tmp.Add(new PersonModel(p));
+    }
+
+    return tmp;
+
+});
 //POST
 app.MapPost("/api/SendMessage", async (JsonObject json) =>
 {
@@ -184,6 +202,7 @@ app.MapPost("/api/SendPerson", (JsonObject json) =>
     Classroom tmp = schoolContext.Classrooms.FirstOrDefault(x => x.Year.Equals(year) && x.Section.Equals(sect) && x.Specialization.Equals(spec));
     string name = "cazzo";
 
+    bool TCODEALREADYExists = false;
 
     if (tmp != null)
     {
@@ -192,23 +211,52 @@ app.MapPost("/api/SendPerson", (JsonObject json) =>
         string Cognome = ja[1].Value.ToString();
         string email = ja[4].Value.ToString();
         string Phonw = ja[5].Value.ToString();
-        string TelegramCODE = ja[6].Value.ToString();
-        bool check;
-        bool.TryParse(ja[7].Value.ToString(), out check);
-        if (Name.Length > 0)
+        string TelegramCODE="";
+        TelegramCodes = GestioneFile.ReadXMLRequestRegister();
+        if (ja[6].Value.ToString().Length >= 3)
         {
-            Person p = new Person(Name, Cognome, DateTime.MinValue, tmp, -1, email, Phonw, check);
-
-            if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE))
+            if (TelegramCodes.Exists(x=>x.Code.Equals(ja[6].Value.ToString())))
             {
-
-                schoolContext.Students.Add(p);
-                schoolContext.SaveChanges();
-                return Results.Accepted("Operation succed");
+                TCODEALREADYExists = true;
             }
-            else return Results.BadRequest("Codice telegram già preso");
+            else TelegramCODE = ja[6].Value.ToString();
+        }
+        else
+        {
+
+            string tmpcode;
+            do
+            {
+                tmpcode = GenerateRandomString(8);
+                tmpcode=tmpcode.ToUpper();
+
+            } while (TelegramCodes.Exists(x => x.Code.Equals(ja[6].Value.ToString())));            
+            TelegramCODE=tmpcode;
+            emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Coridalmente,<br><br>-VMeta", $"s-{Cognome.ToLower().Replace(" ", string.Empty)}.{Name.ToLower().Replace(" ", string.Empty)}@isiskeynes.it");
+
 
         }
+
+        if (!TCODEALREADYExists) {
+
+            bool check;
+            bool.TryParse(ja[7].Value.ToString(), out check);
+            if (Name.Length > 0)
+            {
+                Person p = new Person(Name, Cognome, DateTime.MinValue, tmp, -1, email, Phonw, check);
+
+                if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE))
+                {
+
+                    schoolContext.Students.Add(p);
+                    schoolContext.SaveChanges();
+                    return Results.Accepted("Operation succed");
+                }
+                else return Results.BadRequest("Codice telegram già preso");
+
+            }
+        }
+        else Results.BadRequest("Telegram code già esistente");
 
     }
     /////////////////////////////////////////
@@ -753,6 +801,20 @@ async void AnalizzaCodaAnnuncio() {
 
 }
 
+string GenerateRandomString(int length)
+{
+    Random random = new Random();
+    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    StringBuilder result = new StringBuilder(length);
+
+    for (int i = 0; i < length; i++)
+    {
+        result.Append(chars[random.Next(chars.Length)]);
+    }
+
+    return result.ToString();
+}
+
 List<Classroom> robe = new List<Classroom>();
 async Task FottiClassi()
 {
@@ -813,6 +875,8 @@ async Task ResettaTutto()
     schoolContext.Classrooms.AddRange(robe);
     schoolContext.SaveChanges();
 }
+
+
 
 
 
