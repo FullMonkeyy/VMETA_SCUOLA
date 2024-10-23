@@ -790,7 +790,7 @@ async Task FottiClassi()
     }
 
 }
-//await ResettaTutto();
+await ResettaTutto();
 async Task ResettaTutto()
 {
     foreach (Person p in schoolContext.Students)
