@@ -51,7 +51,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
 
-TelegramBot telegramBot = new TelegramBot(apidev, schoolContext);
+TelegramBot telegramBot = new TelegramBot(apirelease, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
@@ -611,6 +611,7 @@ async void AnalizzaCoda()
                     BotResponse = "";
                     await _core.TalkWithVanessa("Scrivi solo il motivo per il quale la richiesta non viene accettata argomentando adeguatamente.");
                     await telegramBot.SendMessage("La richiesta non è stata accettata...", testing.Person.TelegramId);
+                    testing.AI_Analyzing = false;
                     await telegramBot.SendMessage(BotResponse, testing.Person.TelegramId);
                     await telegramBot.Riepilogo(testing.Person.TelegramId, true);
 
@@ -689,6 +690,7 @@ async void AnalizzaCodaLettere()
                     await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
                     await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Destination)).TelegramId);
                     await telegramBot.SendMessage("Il messaggio non è stato accettato.", testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
+                    testing.AI_Analyzing = false;
                     await telegramBot.SendMessage(me, testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
                     await telegramBot.RiepilogoLettera(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
 
@@ -782,6 +784,7 @@ async void AnalizzaCodaAnnuncio() {
                     BotResponse = "";
                     await _core.TalkWithVanessa("Scrivi solo il motivo per il quale la richiesta non viene accettata argomentando adeguatamente.");
                     await telegramBot.SendMessage("La richiesta non è stata accettata...", testing.Announcer.TelegramId);
+                    testing.AI_Analyzing = false;
                     await telegramBot.SendMessage(BotResponse, testing.Announcer.TelegramId);
                     await telegramBot.Riepilogo(testing.Announcer.TelegramId, true);
 

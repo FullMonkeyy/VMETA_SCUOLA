@@ -959,7 +959,7 @@ namespace VMETA_1.Classes
                                     break;
                                 case "callback_data_29":
 
-                                    await SendMessage("Messaggio inviato al centro AI, nonappena sarà elaborato riceverai una notifica.", FromId);
+                                    await SendMessage("Messaggio inviato al centro AI, non appena sarà elaborato riceverai una notifica.", FromId);
                                     LetteraPronta(this, WritingLetterss[FromId]);
                                     await Menu(FromId);
 
@@ -1905,6 +1905,7 @@ namespace VMETA_1.Classes
         }
         void TrustPointsRank()
         {
+           
             while (true)
             {
                 // Ottieni l'orario corrente
