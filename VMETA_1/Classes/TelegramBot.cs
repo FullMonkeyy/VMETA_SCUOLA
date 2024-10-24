@@ -1449,7 +1449,7 @@ namespace VMETA_1.Classes
                                                text: ErrorMessage,
                                                cancellationToken: cancellationToken);
 
-            RiavvioNecessario(this);
+            //RiavvioNecessario(this);
 
             return null;
         }
