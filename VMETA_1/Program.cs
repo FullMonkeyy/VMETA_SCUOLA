@@ -367,10 +367,13 @@ app.MapDelete("/api/DeletePerson/{id}", async (string id) => {
     if (todelete != null)
     {
 
-        todelete.Problem = null;
+       
         todelete.Classroom = null;
 
         schoolContext.Students.Remove(todelete);
+        schoolContext.Problems.RemoveRange(todelete.Problem);
+        schoolContext.Announcements.RemoveRange(todelete.Announcements);
+        schoolContext.Letters.RemoveRange(todelete.Letters);
         schoolContext.SaveChanges();
         return Results.Accepted("Tolto");
 
