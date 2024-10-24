@@ -959,9 +959,19 @@ namespace VMETA_1.Classes
                                     break;
                                 case "callback_data_29":
 
-                                    await SendMessage("Messaggio inviato al centro AI, non appena sarà elaborato riceverai una notifica.", FromId);
-                                    LetteraPronta(this, WritingLetterss[FromId]);
-                                    await Menu(FromId);
+                                    if (WritingLetterss.ContainsKey(FromId))
+                                    {
+                                        await SendMessage("Messaggio inviato al centro AI, non appena sarà elaborato riceverai una notifica.", FromId);
+
+                                        LetteraPronta(this, WritingLetterss[FromId]);
+                                        await Menu(FromId);
+                                    }
+                                    else
+                                    {
+                                        await SendMessage("Procedura scaduta", FromId);
+                                        await Riepilogo(FromId, false);
+
+                                    }
 
                                     break;
                                 case "callback_data_30":
