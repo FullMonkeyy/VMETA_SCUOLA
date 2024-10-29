@@ -232,9 +232,15 @@ app.MapPost("/api/SendPerson", (JsonObject json) =>
 
             } while (TelegramCodes.Exists(x => x.Code.Equals(ja[6].Value.ToString())));            
             TelegramCODE=tmpcode;
-            emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Coridalmente,<br><br>-VMeta", $"s-{Cognome.ToLower().Replace(" ", string.Empty)}.{Name.ToLower().Replace(" ", string.Empty)}@isiskeynes.it");
 
+            if (!(email.Length > 5 && email.Contains("@") && email.Contains("isiskeynes.it"))){
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", $"s-{Cognome.ToLower().Replace(" ", string.Empty)}.{Name.ToLower().Replace(" ", string.Empty)}@isiskeynes.it");
+            }
+            else
+            {
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
 
+            }
         }
 
         if (!TCODEALREADYExists) {
@@ -371,9 +377,12 @@ app.MapDelete("/api/DeletePerson/{id}", async (string id) => {
         todelete.Classroom = null;
 
         schoolContext.Students.Remove(todelete);
-        schoolContext.Problems.RemoveRange(todelete.Problem);
-        schoolContext.Announcements.RemoveRange(todelete.Announcements);
-        schoolContext.Letters.RemoveRange(todelete.Letters);
+        if(todelete.Problem!=null)
+            schoolContext.Problems.RemoveRange(todelete.Problem);
+        if (todelete.Announcements != null)
+            schoolContext.Announcements.RemoveRange(todelete.Announcements);
+        if (todelete.Letters != null)
+            schoolContext.Letters.RemoveRange(todelete.Letters);
         schoolContext.SaveChanges();
         return Results.Accepted("Tolto");
 

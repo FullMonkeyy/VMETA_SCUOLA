@@ -73,7 +73,9 @@ namespace VMETA_1.Classes
             WritingAnnoucement = new Dictionary<long, Announcement>();
             StateCounter = new Dictionary<long, int>();
             active = true;
+
             botClient = new TelegramBotClient(api);
+            botClient.Timeout = new TimeSpan(24, 0, 0);
             cts = new CancellationTokenSource();
             schoolContext = sc;
             DavideID = 1140272456;
@@ -210,7 +212,7 @@ namespace VMETA_1.Classes
                                             if (text_message.Contains("<") && text_message.Contains(">"))
                                             {
 
-                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrvi il titolo.", id);
+                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrivi il titolo.", id);
 
                                             }
                                             else if (text_message.Length > 50)
@@ -246,12 +248,12 @@ namespace VMETA_1.Classes
                                             if (text_message.Contains("<") && text_message.Contains(">"))
                                             {
 
-                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrvi il titolo.", id);
+                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrivi il titolo.", id);
 
                                             }
                                             else if (text_message.Length > 600)
                                             {
-                                                await SendMessage("La descrizione non può superare la lunghezza di 600 caratteri\nNumero caratteri inseriti: " + text_message.Length + "\n\nRiscrvi il titolo.", id);
+                                                await SendMessage("La descrizione non può superare la lunghezza di 600 caratteri\nNumero caratteri inseriti: " + text_message.Length + "\n\nRiscrivi il titolo.", id);
                                             }
                                             else
                                             {
@@ -556,7 +558,7 @@ namespace VMETA_1.Classes
                                 case "callback_data_8":
 
                                     Person pet = await schoolContext.Students.Include(x=> x.Announcements).FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
-                                    bool procced = true;
+                                    bool procced = false;
                                     DateTime tmp = DateTime.Now;
                                     
 
@@ -630,7 +632,7 @@ namespace VMETA_1.Classes
                                     //write to another classroom
 
                                     pet = await schoolContext.Students.Include(x => x.Letters).FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));                                    
-                                    procced = true;
+                                    procced = false;
                                     tmp = DateTime.Now;
 
                                    
@@ -913,7 +915,7 @@ namespace VMETA_1.Classes
 
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
-                                        await SendMessage("Riscrvi il nuovo messaggio", FromId);
+                                        await SendMessage("Riscrivi il nuovo messaggio", FromId);
                                         WritingLetterss[FromId].Body = null;
                                     }
                                     else
@@ -1635,7 +1637,7 @@ namespace VMETA_1.Classes
                     if(isStoredInChat)
                     ADDTOCHAT(id, mes.MessageId);
                 }
-                catch (Exception e) { }
+                catch (Exception e) { Console.WriteLine("Eccezione nella catch del SendMessage method"); }
             }
         }
         public async Task MandaPulsantiCategorie(long id)
