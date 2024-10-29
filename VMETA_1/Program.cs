@@ -51,7 +51,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
 
-TelegramBot telegramBot = new TelegramBot(apirelease, schoolContext);
+TelegramBot telegramBot = new TelegramBot(apidev, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
@@ -158,6 +158,19 @@ app.MapGet("/api/GetPools", async () =>
     foreach (Pool p in schoolContext.Pools.Include(x => x.Votes))
     {
         models.Add(new PoolModel(p));
+    }
+
+    return Results.Ok(models);
+
+});
+app.MapGet("/api/GetAnnouncements", async () =>
+{
+
+    List<AnnouncementModel> models = new List<AnnouncementModel>();
+
+    foreach (Announcement p in schoolContext.Announcements.Include(x => x.Announcer))
+    {
+        models.Add(new AnnouncementModel(p));
     }
 
     return Results.Ok(models);
@@ -426,6 +439,21 @@ app.MapDelete("/api/DeletePool/{id}", async (int id) =>
 
 
         schoolContext.Pools.Remove(todelete);
+        schoolContext.SaveChanges();
+        return Results.Accepted("Tolto");
+
+    }
+    else return Results.BadRequest("Non esiste il tizio in questione");
+
+});
+app.MapDelete("/api/DeleteAnnouncement/{id}", async (int id) =>
+{
+    Announcement todelete = await schoolContext.Announcements.FirstOrDefaultAsync(x => x.id.Equals(id));
+    if (todelete != null)
+    {
+
+
+        schoolContext.Announcements.Remove(todelete);
         schoolContext.SaveChanges();
         return Results.Accepted("Tolto");
 
