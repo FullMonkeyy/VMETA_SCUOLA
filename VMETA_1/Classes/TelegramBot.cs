@@ -75,7 +75,7 @@ namespace VMETA_1.Classes
             active = true;
 
             botClient = new TelegramBotClient(api);
-            botClient.Timeout = new TimeSpan(24, 0, 0);
+        
             cts = new CancellationTokenSource();
             schoolContext = sc;
             DavideID = 1140272456;
@@ -96,7 +96,9 @@ namespace VMETA_1.Classes
                      pollingErrorHandler: HandlePollingErrorAsync,                     
                      receiverOptions: receiverOptions,
                      cancellationToken: cts.Token
-          );
+            );
+
+       
       
            
            
