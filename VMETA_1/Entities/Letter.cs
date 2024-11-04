@@ -26,7 +26,7 @@
             try
             {
                 if (Author!=null && Destination!=null)
-                    return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da {Author} per {Destination}";
+                    return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da {Author} per {Destination}\n\nSpedito il {InsertionDate.ToLongDateString()}";
                 else if (Destination != null)
                     return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato per {Destination} ";
                 else

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="wwwroot\Announcements.html" />
+    <_ContentIncludedByDefault Remove="wwwroot\Telegram.html" />
   </ItemGroup>
 
   <ItemGroup>
