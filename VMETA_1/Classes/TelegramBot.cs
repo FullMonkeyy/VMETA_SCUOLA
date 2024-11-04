@@ -75,8 +75,8 @@ namespace VMETA_1.Classes
             active = true;
 
             botClient = new TelegramBotClient(api);
-        
-            cts = new CancellationTokenSource();
+            //botClient.Timeout = new TimeSpan(0, 5, 0);
+                cts = new CancellationTokenSource();
             schoolContext = sc;
             DavideID = 1140272456;
             topten = new List<Person>();
@@ -552,7 +552,7 @@ namespace VMETA_1.Classes
                                         ADDTOCHAT(FromId, m.MessageId);
                                     }
 
-                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
                                     var mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
@@ -708,7 +708,7 @@ namespace VMETA_1.Classes
                                         m = await botClient.SendTextMessageAsync(FromId, "Seleziona la classe", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, m.MessageId);
 
-                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
                                         mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
@@ -1241,7 +1241,7 @@ namespace VMETA_1.Classes
                                         m = await botClient.SendTextMessageAsync(FromId, "Seleziona lo studente con cui parlare", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, m.MessageId);
 
-                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
                                         mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
@@ -1289,7 +1289,7 @@ namespace VMETA_1.Classes
                                             m = await botClient.SendTextMessageAsync(FromId, descp, replyMarkup: keyboard);
                                             ADDTOCHAT(FromId, m.MessageId);
 
-                                            keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                            keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
                                             mees = await botClient.SendTextMessageAsync(FromId, "Premi questo pulsante per tornare al menù.", replyMarkup: keyboard);
                                             ADDTOCHAT(FromId, mees.MessageId);
                                         }
@@ -1375,7 +1375,7 @@ namespace VMETA_1.Classes
                                         Letter letter = await schoolContext.Letters.Include(x => x.People).FirstOrDefaultAsync(y => y.Id.Equals(classId));
                                         await SendMessage(letter.ToString(),FromId);
 
-                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
                                         mees = await botClient.SendTextMessageAsync(FromId, "Premi questo pulsante per tornare al menù.", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
@@ -1465,7 +1465,7 @@ namespace VMETA_1.Classes
 
             //RiavvioNecessario(this);
 
-            return null;
+            return Task.CompletedTask;
         }
         public async Task Riepilogo(long id,bool force)
         {
