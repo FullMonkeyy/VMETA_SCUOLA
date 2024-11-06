@@ -83,3 +83,13 @@ class Announcement {
 
     }
 }
+class RequestSendMessage {
+
+    constructor(title, body, destination) {
+        this.Title = title;
+        this.Body = body;
+        this.Destination=destination
+    }
+
+
+}

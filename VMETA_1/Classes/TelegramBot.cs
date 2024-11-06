@@ -30,7 +30,7 @@ namespace VMETA_1.Classes
         public long DavideID{get;set;}
         string BotToken;
         SchoolContext schoolContext;
-        TelegramBotClient botClient;
+        public TelegramBotClient botClient { get; set; }
         ReceiverOptions receiverOptions;
         CancellationTokenSource cts;
 
@@ -415,7 +415,7 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "true";
                                     newproblem.Person = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
-                                    newproblem.TrustPoints = newproblem.Person.TrustPoints;
+                                    newproblem.TrustPoints = (double)newproblem.Person.TrustPoints;
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
                                         if (!(bool)WritingLetterss[FromId].AI_Analyzing)
@@ -454,7 +454,7 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "false";
                                     newproblem.Person = schoolContext.Students.FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
-                                    newproblem.TrustPoints = newproblem.Person.TrustPoints;
+                                    newproblem.TrustPoints = (double)newproblem.Person.TrustPoints;
                                     newproblem.TrustPoints += 2;
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
@@ -1329,7 +1329,7 @@ namespace VMETA_1.Classes
                                         letter.AI_Analyzing = false;
                                         per = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
                                         letter.Author = per.ToString();
-                                        letter.TrustPoints = per.TrustPoints;
+                                        letter.TrustPoints = (double)per.TrustPoints;
                                         letter.People.Add(per);
                                         if (WritingLetterss.ContainsKey(FromId))
                                         {
