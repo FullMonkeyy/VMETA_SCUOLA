@@ -1,12 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ArrayOfRegisterRequest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <RegisterRequest>
-    <Name>Davide</Name>
-    <Surname>Scapellato</Surname>
-    <Code>CBYG0CMW</Code>
-    <isRegistred>false</isRegistred>
-  </RegisterRequest>
-  <RegisterRequest>
     <Name>Federico</Name>
     <Surname>Cecutti</Surname>
     <Code>RIIHN5LF</Code>
@@ -37,9 +31,24 @@
     <isRegistred>false</isRegistred>
   </RegisterRequest>
   <RegisterRequest>
-    <Name>Davide</Name>
-    <Surname>Scapellato</Surname>
-    <Code>ECV5LGXG</Code>
+    <Name>SAMUELE</Name>
+    <Surname>BARAGIOLA</Surname>
+    <Code>FJF08O4E</Code>
     <isRegistred>false</isRegistred>
+    <Email>s-baragiola.samuele@isiskeynes.it</Email>
+  </RegisterRequest>
+  <RegisterRequest>
+    <Name>DAVIDE</Name>
+    <Surname>SCAPELLATO</Surname>
+    <Code>AAQ6TX53</Code>
+    <isRegistred>true</isRegistred>
+    <Email>s-scapellato.davide@isiskeynes.it</Email>
+  </RegisterRequest>
+  <RegisterRequest>
+    <Name>DAVIDE</Name>
+    <Surname>SCAPELLATO</Surname>
+    <Code>MWN5MGY1</Code>
+    <isRegistred>true</isRegistred>
+    <Email>s-scapellato.davide@isiskeynes.it</Email>
   </RegisterRequest>
 </ArrayOfRegisterRequest>

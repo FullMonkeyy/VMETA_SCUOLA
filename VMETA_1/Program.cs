@@ -58,6 +58,7 @@ telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
 telegramBot.AnnuncioPronta += AddAnnouncement;
+telegramBot.RichiestaDaCompletare += NewPerson;
 IResponseStreamer<ChatResponseStream?> Streamer = null;
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 Thread AiProblemSender = new Thread(AnalizzaCoda);
@@ -266,7 +267,7 @@ app.MapPost("/api/SendPerson", (JsonObject json) =>
             {
                 Person p = new Person(Name, Cognome, DateTime.MinValue, tmp, -1, email, Phonw, check);
 
-                if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE))
+                if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE,email))
                 {
 
                     schoolContext.Students.Add(p);
@@ -651,6 +652,40 @@ void ReStart(object sender)
 
     telegramBot.RiavviaClient("7502523717:AAHuuedxcjwGwIarfZUrMCEfsQbsyXHPwbY");
 
+}
+void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegram)
+{
+    if (classe.Length >= 3)
+    {
+        string tmpcode;
+        string TelegramCODE;
+        string Name = RR.Name;
+        string year = classe[0] + "";
+        string sect = classe[1] + "";
+        string spec = classe.Substring(2);
+        Classroom tmp = schoolContext.Classrooms.FirstOrDefault(x => x.Year.Equals(year) && x.Section.Equals(sect) && x.Specialization.Equals(spec));
+        if (tmp != null)
+        {
+            do
+            {
+                tmpcode = GenerateRandomString(8);
+                tmpcode = tmpcode.ToUpper();
+
+            } while (TelegramCodes.Exists(x => x.Code.Equals(tmpcode)));
+            TelegramCODE = tmpcode;
+            telegramBot.SendMessage("Ok, ti arriverà presto una email con il codice da inserire", tmptelegram);
+            emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", RR.Email);
+
+            Person p = new Person(Name, RR.Surname, DateTime.MinValue, tmp, -1, RR.Email, "nessuno", false);
+            if (telegramBot.RegisterNewAccountRequest(Name, RR.Surname, TelegramCODE, RR.Email))
+            {
+
+                schoolContext.Students.Add(p);
+                schoolContext.SaveChanges();
+            }
+        }
+        Console.WriteLine("Nuovo tizio inserito");
+    }
 }
 
 async void AnalizzaCoda()
