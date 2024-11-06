@@ -8,7 +8,5 @@
         public string Destination {  get; set; }
 
 
-
-
     }
 }

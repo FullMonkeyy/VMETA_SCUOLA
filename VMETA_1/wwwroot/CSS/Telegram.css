@@ -148,7 +148,7 @@
 
     display:flex;
     flex-wrap:wrap;
-    background-color:red;
+
     padding:20px;
     gap:35px;
 
@@ -157,9 +157,10 @@
     display: flex;
     flex-wrap: wrap;
     flex-direction: column;
-    background-color: red;
+    background-color: #321cb0;
     padding: 20px;
     gap: 35px;
+    border-radius: 16px;
 }
 .innerMessageDiv{
 
