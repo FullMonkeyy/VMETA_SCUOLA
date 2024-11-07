@@ -184,19 +184,19 @@ namespace VMETA_1.Classes
             }
             catch (IOException e)
             {
-            
+
                 Console.WriteLine("Non sono riuscito a salvare le chat telegram");
 
             }
             catch (Exception e)
             {
- 
+
                 Console.WriteLine(e.Message);
             }
         }
         static public Dictionary<long, Dictionary<DateTime, int>> ReadXMLTelegramChats()
         {
-            Dictionary<long, Dictionary<DateTime, int>> dct = new Dictionary<long, Dictionary<DateTime,int>>();
+            Dictionary<long, Dictionary<DateTime, int>> dct = new Dictionary<long, Dictionary<DateTime, int>>();
 
             if (File.Exists(@_chatsPath))
             {
@@ -206,7 +206,7 @@ namespace VMETA_1.Classes
 
                     DataContractSerializer serializer = new DataContractSerializer(typeof(Dictionary<long, Dictionary<DateTime, int>>));
                     dct = (Dictionary<long, Dictionary<DateTime, int>>)serializer.ReadObject(reader);
-                    reader.Close();                  
+                    reader.Close();
 
                 }
                 catch (IOException e)
@@ -221,14 +221,14 @@ namespace VMETA_1.Classes
                     reader.Close();
                 }
             }
-            
+
 
             return dct;
 
         }
         static public void WriteXMLRequestRegister(List<RegisterRequest> listaRichieste)
         {
-            StreamWriter sw=null;
+            StreamWriter sw = null;
             try
             {
 
@@ -240,13 +240,13 @@ namespace VMETA_1.Classes
                 sw.Close();
 
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e);
                 if (sw != null)
                     sw.Close();
             }
-            
+
 
         }
         static public List<RegisterRequest> ReadXMLRequestRegister()
@@ -274,12 +274,37 @@ namespace VMETA_1.Classes
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                if(sw!=null)
-                sw.Close();
+                if (sw != null)
+                    sw.Close();
 
             }
 
             return tmp;
+        }
+
+
+        static public List<string> GetCSVLines(string filePath)
+        {
+
+            List<string> lines = new List<string>();
+            try
+            {
+                // Leggi tutte le righe del file
+                lines = File.ReadAllLines(filePath).ToList();
+
+
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Errore nella lettura del file: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errore: {ex.Message}");
+            }
+
+            return lines;
+
         }
 
 

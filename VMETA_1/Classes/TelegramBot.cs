@@ -22,6 +22,7 @@ using System.Linq;
 using System.Security.Cryptography.Xml;
 using Microsoft.Win32.SafeHandles;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.RegularExpressions;
 
 namespace VMETA_1.Classes
 {
@@ -58,6 +59,10 @@ namespace VMETA_1.Classes
 
         public delegate void DelegatoEventoReStart(object sender);
         public event DelegatoEventoReStart RiavvioNecessario;
+
+
+        public delegate void DelegatoEventoRegisterRequest(object sender, RegisterRequest p, string classe, long tmptelegram);
+        public event DelegatoEventoRegisterRequest RichiestaDaCompletare;
 
 
         public TelegramBot(string api,SchoolContext sc)
@@ -113,7 +118,7 @@ namespace VMETA_1.Classes
                 {
                     if (update.Message.Text != null)
                     {
-                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-()=";
+                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-()=@";
                         if (update.Message.Text.All(c =>lettereAccentate.Contains(c)))
                         {
                             string text_message = update.Message.Text;
@@ -197,6 +202,94 @@ namespace VMETA_1.Classes
                                 {
                                     await SendMessage("Salve, si prega di autenticarsi contattando l'amministratore di sistema.", id);
                                 }
+                            }
+                            else if (text_message.StartsWith("/email:"))
+                            {
+                                Person tmp33 = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
+
+                                if (tmp33 == null)
+                                {
+                                    await CLEAR(id);
+                                    string[] tmp = text_message.Split(':');
+                                    if (tmp.Length == 2)
+                                    {
+                                        string emailRegex = @"^s-([a-zA-Z0-9]{2,})\.([a-zA-Z0-9]{2,})@isiskeynes\.it$";
+                                        string tmpemail = tmp[1].Trim();
+                                        if (Regex.IsMatch(tmpemail, emailRegex))
+                                        {
+
+                                            List<string> lines = GestioneFile.GetCSVLines("nomi_cognomi_classi.csv");
+                                            List<string> linesemail = GestioneFile.GetCSVLines("Email.csv");
+                                            string[] attributes, attributes2;
+                                            string name = "";
+                                            string surname = "";
+                                            string classe = "";
+
+                                            foreach (string line in linesemail)
+                                            {
+
+                                                attributes = line.Split(",");
+
+
+
+                                                if (attributes.Count() == 3)
+                                                {
+                                                    if (attributes[2].Equals(tmpemail))
+                                                    {
+                                                        name = attributes[0];
+                                                        surname = attributes[1];
+
+                                                        foreach (string lineclasse in lines)
+                                                        {
+                                                            attributes2 = lineclasse.Split(";");
+                                                            if (attributes2.Count() == 3)
+                                                            {
+
+
+
+                                                                if (attributes2[0].ToLower().Contains(surname.ToLower()) && attributes2[1].ToLower().Contains(name.ToLower()))
+                                                                {
+
+                                                                    classe = attributes2[2];
+                                                                    break;
+                                                                }
+
+                                                            }
+                                                        }
+                                                        break;
+                                                    }
+                                                }
+
+                                            }
+
+                                            if (name != "" && surname != "" && classe != "")
+                                            {
+                                                await SendMessage("Ok, ho preparato una richiesta di registrazione", id);
+
+                                                RichiestaDaCompletare(this, new RegisterRequest(name, surname, "NOT SETTED", tmpemail), classe, id);
+                                            }
+                                            else
+                                                await SendMessage("Non sono riuscita a recuperare le tue informazioni attraverso l'email...", id);
+
+
+
+
+
+
+                                        }
+                                        else
+                                        {
+                                            await SendMessage("Formattazione dell'email sbagliata.", id);
+                                        }
+
+
+                                    }
+                                }
+                                else
+                                {
+                                    await SendMessage($"Ciao {tmp33.Name}, sei già registrato.", id);
+                                }
+
                             }
                             else if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                             {
@@ -1599,18 +1692,19 @@ namespace VMETA_1.Classes
                 ADDTOCHAT(id, mes.MessageId);
             }
         }
-        public bool RegisterNewAccountRequest(string name,string surname,string code)
+        public bool RegisterNewAccountRequest(string name, string surname, string code, string email)
         {
             List<RegisterRequest> tmr = GestioneFile.ReadXMLRequestRegister();
             if (!tmr.Exists(x => x.Code.Equals(code)))
             {
-                tmr.Add(new RegisterRequest(name, surname, code));
+                tmr.Add(new RegisterRequest(name, surname, code, email));
                 GestioneFile.WriteXMLRequestRegister(tmr);
                 return true;
             }
             else return false;
-          
+
         }
+
         public async Task SendMessage(string text, long id){
 
             if (id != -1)
