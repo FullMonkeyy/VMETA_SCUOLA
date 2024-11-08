@@ -1716,7 +1716,11 @@ namespace VMETA_1.Classes
                           text: text
                           );
                     ADDTOCHAT(id, mes.MessageId);
-                }catch(Exception e) { }
+                }catch(Exception e) {
+
+                    Console.WriteLine("Nel SendMessage [text,id]");
+
+                }
             }
         }
         public async Task SendMessage(string text, long id,bool isStoredInChat)
@@ -1822,7 +1826,7 @@ namespace VMETA_1.Classes
                             }
                             catch (Exception e)
                             {
-                                //Boh robe
+                                Console.WriteLine("Nel clear method");
                             }
                         }
 

@@ -599,7 +599,10 @@ void AddProblem(object sendere, Problem p)
             _problem_queue.ToList()[i].TrustPoints += 0.25;
             }
         }
-        catch (Exception e) { }
+        catch (Exception e) {
+
+            Console.WriteLine("Nel AddProblem [text,id]");
+        }
 
     }
   
@@ -621,7 +624,10 @@ void AddLetter(object sender, Letter l)
                 _letter_queue.ToList()[i].TrustPoints += 0.25;
             }
         }
-        catch(Exception e) { }
+        catch(Exception e) {
+
+            Console.WriteLine("Eccezione nell'add letter");
+        }
 
     }
 
