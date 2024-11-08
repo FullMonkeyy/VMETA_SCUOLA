@@ -264,6 +264,9 @@ namespace VMETA_1.Classes
 
                                             if (name != "" && surname != "" && classe != "")
                                             {
+
+                                                name= char.ToUpper(name[0]) + name.Substring(1).ToLower();
+                                                surname = char.ToUpper(surname[0]) + surname.Substring(1).ToLower();
                                                 await SendMessage("Ok, ho preparato una richiesta di registrazione", id);
 
                                                 RichiestaDaCompletare(this, new RegisterRequest(name, surname, "NOT SETTED", tmpemail), classe, id);
