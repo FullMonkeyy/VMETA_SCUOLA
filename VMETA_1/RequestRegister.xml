@@ -38,17 +38,24 @@
     <Email>s-baragiola.samuele@isiskeynes.it</Email>
   </RegisterRequest>
   <RegisterRequest>
-    <Name>DAVIDE</Name>
-    <Surname>SCAPELLATO</Surname>
-    <Code>AAQ6TX53</Code>
+    <Name>MOAD</Name>
+    <Surname>MOUSSAFIR</Surname>
+    <Code>VUQVAHTV</Code>
     <isRegistred>true</isRegistred>
-    <Email>s-scapellato.davide@isiskeynes.it</Email>
+    <Email>s-moussafir.moad@isiskeynes.it</Email>
   </RegisterRequest>
   <RegisterRequest>
-    <Name>DAVIDE</Name>
-    <Surname>SCAPELLATO</Surname>
-    <Code>MWN5MGY1</Code>
+    <Name>MOAD</Name>
+    <Surname>MOUSSAFIR</Surname>
+    <Code>NKRDS1DJ</Code>
+    <isRegistred>false</isRegistred>
+    <Email>s-moussafir.moad@isiskeynes.it</Email>
+  </RegisterRequest>
+  <RegisterRequest>
+    <Name>DIEGO</Name>
+    <Surname>MOZZANICA</Surname>
+    <Code>DAMKSLE6</Code>
     <isRegistred>true</isRegistred>
-    <Email>s-scapellato.davide@isiskeynes.it</Email>
+    <Email>s-mozzanica.diego@isiskeynes.it</Email>
   </RegisterRequest>
 </ArrayOfRegisterRequest>

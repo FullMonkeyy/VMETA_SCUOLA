@@ -250,11 +250,11 @@ app.MapPost("/api/SendPerson", (JsonObject json) =>
             TelegramCODE=tmpcode;
 
             if (!(email.Length > 5 && email.Contains("@") && email.Contains("isiskeynes.it"))){
-                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", $"s-{Cognome.ToLower().Replace(" ", string.Empty)}.{Name.ToLower().Replace(" ", string.Empty)}@isiskeynes.it");
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", $"s-{Cognome.ToLower().Replace(" ", string.Empty)}.{Name.ToLower().Replace(" ", string.Empty)}@isiskeynes.it");
             }
             else
             {
-                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
 
             }
         }
@@ -674,7 +674,7 @@ void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegra
             } while (TelegramCodes.Exists(x => x.Code.Equals(tmpcode)));
             TelegramCODE = tmpcode;
             telegramBot.SendMessage("Ok, ti arriverà presto una email con il codice da inserire", tmptelegram);
-            emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>CODICE:<b>{tmpcode}</b><br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", RR.Email);
+            emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", RR.Email);
 
             Person p = new Person(Name, RR.Surname, DateTime.MinValue, tmp, -1, RR.Email, "nessuno", false);
             if (telegramBot.RegisterNewAccountRequest(Name, RR.Surname, TelegramCODE, RR.Email))
@@ -782,11 +782,8 @@ async void AnalizzaCoda()
                 }
                 else
                 {
-                    BotResponse = "";
-                    await _core.TalkWithVanessa("Scrivi solo il motivo per il quale la richiesta non viene accettata argomentando adeguatamente.");
-                    await telegramBot.SendMessage("La richiesta non è stata accettata...", testing.Person.TelegramId);
-                    testing.AI_Analyzing = false;
-                    await telegramBot.SendMessage(BotResponse, testing.Person.TelegramId);
+                    await telegramBot.SendMessage("La richiesta non è stata accettata...\nE' risultata inappropriata la segnalazione", testing.Person.TelegramId);
+                    testing.AI_Analyzing = false;                   
                     await telegramBot.Riepilogo(testing.Person.TelegramId, true);
 
                 }
@@ -857,15 +854,10 @@ async void AnalizzaCodaLettere()
                 }
                 else
                 {
-                    BotResponse = "";
-                    mex = $"Perché hai rifiutato l'elaborazione del messaggio? Scrivi le motivazioni";
-                    await _core.TalkWithVanessa(mex);
-                    string me = BotResponse;
-                    await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
-                    await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Destination)).TelegramId);
+                    
+                    await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);                   
                     await telegramBot.SendMessage("Il messaggio non è stato accettato.", testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
-                    testing.AI_Analyzing = false;
-                    await telegramBot.SendMessage(me, testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
+                    testing.AI_Analyzing = false;                   
                     await telegramBot.RiepilogoLettera(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
 
                 }
@@ -955,11 +947,8 @@ async void AnalizzaCodaAnnuncio() {
                 }
                 else
                 {
-                    BotResponse = "";
-                    await _core.TalkWithVanessa("Scrivi solo il motivo per il quale la richiesta non viene accettata argomentando adeguatamente.");
-                    await telegramBot.SendMessage("La richiesta non è stata accettata...", testing.Announcer.TelegramId);
-                    testing.AI_Analyzing = false;
-                    await telegramBot.SendMessage(BotResponse, testing.Announcer.TelegramId);
+                    await telegramBot.SendMessage("La richiesta non è stata accettata...\nIl linguaggio utilizzato è risultato inappropriato", testing.Announcer.TelegramId);
+                    testing.AI_Analyzing = false;                 
                     await telegramBot.Riepilogo(testing.Announcer.TelegramId, true);
 
                 }
