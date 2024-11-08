@@ -162,7 +162,7 @@ namespace VMETA_1.Classes
                                         if (convalidazione)
                                         {
 
-                                            RegisterRequest p = tmr.Find(x => x.isRegistred);
+                                            RegisterRequest p = tmr.Find(x => x.isRegistred && x.Code.Equals(tmpcodice));
                                             tmr.Remove(p);
                                             GestioneFile.WriteXMLRequestRegister(tmr);
                                             await SendMessage($"Convalidazione riuscita!\nBenvenuto {p.Name}!\nSpero che ti potrò tornare utile!", id);
