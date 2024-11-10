@@ -10,6 +10,8 @@ namespace VMETA_1.Models
         public string Email { get; set; }   
         public string Phone { get; set; }
         public string Classroom { get; set; }
+        public bool IsJustStudent { get; set; }
+        public bool IsRegistred {  get; set; }
 
         public List<ProblemModel> Problems { get; set; }   
 
@@ -23,7 +25,16 @@ namespace VMETA_1.Models
             Classroom=p.Classroom.ToString();
             Problems = new List<ProblemModel>();
             p.Problem.ForEach(x=> Problems.Add(new ProblemModel(x)));
+            if (p.TelegramId != -1)
+            {
+                IsRegistred = true;
+            }
+            else
+            {
+                IsRegistred = false;
+            }
 
+            IsJustStudent=p.isJustStudent;
 
         }
 

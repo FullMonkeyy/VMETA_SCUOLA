@@ -148,6 +148,7 @@ namespace VMETA_1.Classes
 
                                                 Person p = schoolContext.Students.FirstOrDefault(x => x.Name.Equals(r.Name) && x.Surname.Equals(r.Surname));
                                                 p.TelegramId = id;
+                                              
                                                 r.isRegistred = true;
                                                 schoolContext.SaveChanges();
                                                 convalidazione = true;

@@ -564,6 +564,37 @@ app.MapPut("/api/ModificaAI/{id}", async (int id) => {
 
 
 });
+app.MapPut("/api/MakeRappresentante/{id}", async (string id) =>
+{
+    List<string> tmp = id.Split("_").ToList();
+    Person p = await schoolContext.Students.FirstOrDefaultAsync(x => x.Name.Equals(tmp[0]) && x.Surname.Equals(tmp[1]));
+
+    if (p != null) { 
+    
+        p.isJustStudent = false;
+        schoolContext.SaveChanges();
+        return Results.Ok();
+
+    }
+    else return Results.BadRequest();
+
+});
+app.MapPut("/api/MakeStudent/{id}", async (string id) =>
+{
+    List<string> tmp = id.Split("_").ToList();
+    Person p = await schoolContext.Students.FirstOrDefaultAsync(x => x.Name.Equals(tmp[0]) && x.Surname.Equals(tmp[1]));
+
+    if (p != null)
+    {
+
+        p.isJustStudent = true;
+        schoolContext.SaveChanges();
+        return Results.Ok();
+
+    }
+    else return Results.BadRequest();
+
+});
 
 
 async Task NotificaNuovoPool(string title, Person p)
