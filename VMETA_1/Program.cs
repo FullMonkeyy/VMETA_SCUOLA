@@ -198,7 +198,7 @@ app.MapPost("/api/SendMessage", async (JsonObject json) =>
     Message? message = JsonConvert.DeserializeObject<Message>(jasonstring);
 
 
-    await _core.TalkWithVanessa(message.Content);
+    await _core.TalkWithVanessa(message.Content,true);
 
     /////////////////////////////////////////
     return Results.Accepted("id libro:");
@@ -788,7 +788,9 @@ async void AnalizzaCoda()
                 }
                 else
                 {
-                    await telegramBot.SendMessage("La richiesta non è stata accettata...\nE' risultata inappropriata la segnalazione", testing.Person.TelegramId);
+                    await telegramBot.SendMessage("La richiesta non è stata accettata... Hai perso 0.50 trustpoints\nE' risultata inappropriata la segnalazione", testing.Person.TelegramId);
+                    testing.Person.TrustPoints -= 0.50;
+                    schoolContext.SaveChanges();
                     testing.AI_Analyzing = false;                   
                     await telegramBot.Riepilogo(testing.Person.TelegramId, true);
 
@@ -862,7 +864,9 @@ async void AnalizzaCodaLettere()
                 {
                     
                     await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);                   
-                    await telegramBot.SendMessage("Il messaggio non è stato accettato.", testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
+                    await telegramBot.SendMessage("Il messaggio non è stato accettato.\nHai perso 0.50 trustpoints", testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
+                    testing.People.Find(x => x.ToString().Equals(testing.Author)).TrustPoints -= 0.50;
+                    schoolContext.SaveChanges();
                     testing.AI_Analyzing = false;                   
                     await telegramBot.RiepilogoLettera(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
 
@@ -953,9 +957,11 @@ async void AnalizzaCodaAnnuncio() {
                 }
                 else
                 {
-                    await telegramBot.SendMessage("La richiesta non è stata accettata...\nIl linguaggio utilizzato è risultato inappropriato", testing.Announcer.TelegramId);
-                    testing.AI_Analyzing = false;                 
-                    await telegramBot.Riepilogo(testing.Announcer.TelegramId, true);
+                    await telegramBot.SendMessage("La richiesta non è stata accettata...\nHai perso 0.5 trustpoints\nIl linguaggio utilizzato è risultato inappropriato", testing.Announcer.TelegramId);
+                    testing.AI_Analyzing = false;
+                    testing.Announcer.TrustPoints -= 0.5;
+                    schoolContext.SaveChanges();
+                    await telegramBot.RiepilogoAnnuncio(testing.Announcer.TelegramId);
 
                 }
 

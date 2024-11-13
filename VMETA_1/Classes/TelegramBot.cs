@@ -971,9 +971,11 @@ namespace VMETA_1.Classes
                                     {
                                         WritingProblems[FromId].AI_Forced = true;
                                         schoolContext.Problems.Add(WritingProblems[FromId]);
+                                        WritingProblems[FromId].Person.TrustPoints += 0.5;
                                         schoolContext.SaveChanges();
                                         DeleteWritingProblem(FromId);
-                                        await SendMessage("Bypass effettuato con successo. Segnalazione completata.\nIn caso di abuso, si procederà con il ban.", FromId);
+                                        await SendMessage("Bypass effettuato con successo. Segnalazione completata.\nIn caso di abuso, si procederà con il ban.\nHai compensato con +0.5 truspoints", FromId);
+                                       
                                         await Menu(FromId);
                                     }
                                     else

@@ -19,7 +19,7 @@ namespace VMETA_1.Classes
             //RELEASE: http://192.168.1.52:11434
 
             //FAI ATTENZIONE AL MODELLO SCRITTO NELLA REQUEST
-            ollama = new OllamaApiClient(new Uri("http://localhost:11434"));
+            ollama = new OllamaApiClient(new Uri("http://192.168.1.52:11434"));
            
             _messages = new List<Message>();
             Streamer = streamer;
@@ -60,7 +60,7 @@ namespace VMETA_1.Classes
 
         public async Task<bool> TalkWithVanessa(string prompt)
         {
-            _messages.Add(new Message(ChatRole.User, prompt));
+            
             chatRequest = new ChatRequest
             {
                 Messages = _messages,
@@ -68,6 +68,21 @@ namespace VMETA_1.Classes
                 Stream = true
             };
            
+            _messages = (await ollama.SendChat(chatRequest, Streamer, cts.Token)).ToList();
+            return true;
+        }
+
+        public async Task<bool> TalkWithVanessa(string prompt,bool isContesutalized)
+        {
+            if(isContesutalized)
+            _messages.Add(new Message(ChatRole.User, prompt));
+            chatRequest = new ChatRequest
+            {
+                Messages = _messages,
+                Model = "llama3",
+                Stream = true
+            };
+
             _messages = (await ollama.SendChat(chatRequest, Streamer, cts.Token)).ToList();
             return true;
         }
