@@ -99,9 +99,9 @@ function DisplayStudents(Data) {
         })
         divo.appendChild(img)
       
-        divo.addEventListener("click", async (event) => {
-
-            tmp1=event.target.id.split(" ")
+        divo.addEventListener("click", async (ivent) => {
+            let total = ivent.currentTarget.id
+            tmp1 = total.split(" ")
             if (tmp1[1] =="rappresentante")
                 await ChangeRole(tmp1[0], false)
             else await ChangeRole(tmp1[0], true)
