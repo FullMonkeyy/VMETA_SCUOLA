@@ -53,8 +53,25 @@ function DisplayStudents(Data) {
 
         var divo = document.createElement("div");
         divo.setAttribute("class", "student");
-        divo.innerHTML = "<img src='../CSS/Assets/personicon.png' class='innerIcon'>";
+        var icon = document.createElement("img")
+        icon.setAttribute("class", "innerIcon")
+     
+        divo.id = Data[i]["name"] + "_" + Data[i]["surname"] 
+        if (Data[i]["isJustStudent"]) {
+            icon.src = '../CSS/Assets/personicon.png'
+            divo.id +=" student"
+
+        } else {
+            icon.src = '../CSS/Assets/star.png'
+            divo.id += " rappresentante"
+        };
+
+        divo.appendChild(icon)
         divo.innerHTML += "<span class='innerSpanStudent'>" + Data[i]["surname"] + " " + Data[i]["name"] + " " + Data[i]["classroom"] + "</span>"
+    
+
+        if (!Data[i]["isRegistred"]) divo.style.backgroundColor = "green";
+
         var img = document.createElement("img");
         img.src = "../CSS/Assets/cestino.png"
         img.setAttribute("class", "cestino");
@@ -81,7 +98,15 @@ function DisplayStudents(Data) {
 
         })
         divo.appendChild(img)
+      
+        divo.addEventListener("click", async (event) => {
 
+            tmp1=event.target.id.split(" ")
+            if (tmp1[1] =="rappresentante")
+                await ChangeRole(tmp1[0], false)
+            else await ChangeRole(tmp1[0], true)
+            window.location.reload();
+        })
         Container.appendChild(divo);
 
 
@@ -92,6 +117,29 @@ function DisplayStudents(Data) {
     divo.innerHTML = "Add Students +";
     divo.addEventListener("click",AddStudentProcess)
     Container.appendChild(divo);
+
+
+}
+async function ChangeRole(id,isjuststudent) {
+    var endpoint
+    if (isjuststudent) {
+        endpoint = "api/MakeRappresentante/" + id
+        await fetch(endpoint, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+    }
+    else {
+        endpoint = "api/MakeStudent/" + id
+        await fetch(endpoint, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+    }
 
 
 }
