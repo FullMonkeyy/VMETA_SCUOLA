@@ -204,7 +204,7 @@ app.MapPost("/api/SendMessage", async (JsonObject json) =>
     return Results.Accepted("id libro:");
 
 });
-app.MapPost("/api/SendPerson", (JsonObject json) =>
+app.MapPost("/api/SendPerson", async (JsonObject json) =>
 {
     //string jasonstring = json.ToString();
     var ja = json.ToArray();
@@ -325,6 +325,7 @@ app.MapPost("/api/SendPool", async (JsonObject json) => {
 
             }
             schoolContext.SaveChanges();
+            Console.WriteLine("Ho creato il pool: " + newpool.Titolo);
         }
         else
         {
@@ -342,6 +343,7 @@ app.MapPost("/api/SendPool", async (JsonObject json) => {
 
             }
             schoolContext.SaveChanges();
+            Console.WriteLine("Ho creato il pool: "+newpool.Titolo);
         }
 
 
@@ -520,14 +522,12 @@ app.MapDelete("/api/DeletePool/{id}", async (int id) =>
     {
 
 
-        schoolContext.Decisions.RemoveRange(todelete.Votes);
-
-
-        schoolContext.SaveChanges();
+        
 
 
         schoolContext.Pools.Remove(todelete);
         schoolContext.SaveChanges();
+        Console.WriteLine("Ho eliminato il sondaggio: "+todelete.Titolo);
         return Results.Accepted("Tolto");
 
     }
