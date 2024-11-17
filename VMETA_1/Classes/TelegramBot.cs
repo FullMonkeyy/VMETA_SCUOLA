@@ -103,7 +103,7 @@ namespace VMETA_1.Classes
                      receiverOptions: receiverOptions,
                      cancellationToken: cts.Token
             );
-
+            SendMessage("BOT AVVIATO", DavideID);
             NumMaxEmails = 100;
 
         }
@@ -118,7 +118,8 @@ namespace VMETA_1.Classes
                 {
                     if (update.Message.Text != null)
                     {
-                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-()=@";
+                        //Messaggi scritti
+                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-_()=@";
                         if (update.Message.Text.All(c =>lettereAccentate.Contains(c)))
                         {
                             string text_message = update.Message.Text;
@@ -133,7 +134,8 @@ namespace VMETA_1.Classes
 
                                 Person tmp33 = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
 
-                                if (tmp33==null) {
+                                if (tmp33 == null)
+                                {
                                     await CLEAR(id);
                                     string[] tmp = text_message.Split(':');
                                     if (tmp.Length == 2)
@@ -148,7 +150,7 @@ namespace VMETA_1.Classes
 
                                                 Person p = schoolContext.Students.FirstOrDefault(x => x.Name.Equals(r.Name) && x.Surname.Equals(r.Surname));
                                                 p.TelegramId = id;
-                                              
+
                                                 r.isRegistred = true;
                                                 schoolContext.SaveChanges();
                                                 convalidazione = true;
@@ -187,7 +189,7 @@ namespace VMETA_1.Classes
                                 {
                                     await SendMessage($"Ciao {tmp33.Name} sei già registrato.", id);
                                 }
-                            }                            
+                            }
                             else if (text_message.StartsWith("/start"))
                             {
                                 await CLEAR(id);
@@ -196,7 +198,7 @@ namespace VMETA_1.Classes
 
                                 if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                                 {
-                                    
+
                                     await Menu(id);
                                 }
                                 else
@@ -304,6 +306,12 @@ namespace VMETA_1.Classes
 
                                 }
                             }
+                            else if (text_message.Equals("/turn_off") && id.Equals(DavideID))
+                            {
+
+                                active = false;
+                                await SendMessage("BOT DISATTIVATO", DavideID);
+                            }               
                             else if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                             {
 
@@ -366,8 +374,8 @@ namespace VMETA_1.Classes
                                             else
                                             {
                                                 problem.Description = text_message;
-                                                if(problem.Solution == "-NOT SETTED5353453453435375698")
-                                                await ProponiSoluzioni(id);
+                                                if (problem.Solution == "-NOT SETTED5353453453435375698")
+                                                    await ProponiSoluzioni(id);
                                             }
 
 
@@ -466,8 +474,8 @@ namespace VMETA_1.Classes
                                         }
                                     }
 
-                                }                               
-                                if(!writing)
+                                }
+                                if (!writing)
                                 {
                                     await CLEAR(id);
                                     await Menu(id);
@@ -499,6 +507,7 @@ namespace VMETA_1.Classes
                 }
                 else
                 {
+                    //PULSANTI
                     if (update.CallbackQuery != null)
                     {
                     
@@ -1548,12 +1557,40 @@ namespace VMETA_1.Classes
             }
             else
             {
-                EliminateALLmessages();
                 if (update.Message != null)
                 {
-                    long id = update.Message.Chat.Id;
-                    await SendMessage("Attualmente non sono disponibile. ", id);
+                    if (update.Message.Text != null)
+                    {
+                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-_()=@";
+                        if (update.Message.Text.All(c => lettereAccentate.Contains(c)))
+                        {
+
+                            string text_message = update.Message.Text;
+                            long id = update.Message.Chat.Id;
+
+                            ADDTOCHAT(id, update.Message.MessageId);
+
+                            bool convalidazione = false;
+                            bool writing = false;
+
+                            if (text_message.Equals("/turn_on") && id.Equals(DavideID))
+                            {
+                                active = true;
+                                await SendMessage("BOT AVVIATO", DavideID);
+                            }
+                            else
+                            {
+                                //EliminateALLmessages();
+                                if (update.Message != null)
+                                {                                    
+                                    await SendMessage("Attualmente non sono disponibile. ", id);
+                                }
+                            }
+
+                        }
+                    }
                 }
+                
              
             }
         }
@@ -1571,7 +1608,7 @@ namespace VMETA_1.Classes
                                                text: ErrorMessage,
                                                cancellationToken: cancellationToken);
 
-            //RiavvioNecessario(this);
+            RiavvioNecessario(this);
 
             return Task.CompletedTask;
         }
@@ -1803,6 +1840,7 @@ namespace VMETA_1.Classes
         public void RiavviaClient(string token)
         {
             active = false;
+            cts.Cancel();
             botClient = new TelegramBotClient(token);
             
             cts = new CancellationTokenSource();
@@ -1819,7 +1857,7 @@ namespace VMETA_1.Classes
                      cancellationToken: cts.Token
           );
 
-
+           SendMessage("BOT AVVIATO", DavideID);
         }
         public async Task CLEAR(long id)
         {

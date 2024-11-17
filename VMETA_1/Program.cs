@@ -52,8 +52,8 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-
-TelegramBot telegramBot = new TelegramBot(apirelease, schoolContext);
+string telegramAPI= apidev; 
+TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
@@ -189,6 +189,11 @@ app.MapGet("/api/SearchStudentsCognome/{cognome}", async (string cognome) => {
 
     return tmp;
 
+});
+app.MapGet("/api/RestartBotTelegram", () => {
+
+    telegramBot.RiavviaClient(telegramAPI);
+    return Results.Ok();
 });
 //POST
 app.MapPost("/api/SendMessage", async (JsonObject json) =>
@@ -687,7 +692,7 @@ void AddAnnouncement(object sender, Announcement a) {
 void ReStart(object sender)
 {
 
-    telegramBot.RiavviaClient("7502523717:AAHuuedxcjwGwIarfZUrMCEfsQbsyXHPwbY");
+    telegramBot.RiavviaClient(telegramAPI);
 
 }
 void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegram)

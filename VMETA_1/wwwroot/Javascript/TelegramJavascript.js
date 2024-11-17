@@ -48,3 +48,28 @@ async function SendRequest() {
 
 
 }
+ResettaClient
+document.getElementById("ResettaClient").addEventListener("click", async () => {
+
+    await RestartClient();
+
+});
+
+async function RestartClient() {
+
+    await fetch("api/RestartBotTelegram")
+        .then(response => {
+            if (response.ok) {
+                // La richiesta è andata a buon fine (status code 2xx)
+                console.log("La richiesta GET è andata a buon fine.");
+            } else {
+                // La richiesta ha avuto problemi (status code diverso da 2xx)
+                console.error("Si è verificato un problema durante la richiesta POST.");
+            }
+        })
+        .catch(error => {
+            // Si è verificato un errore durante l'invio della richiesta
+            console.error("Si è verificato un errore durante l'invio della richiesta POST:", error);
+        });
+    window.location.reload();
+}
