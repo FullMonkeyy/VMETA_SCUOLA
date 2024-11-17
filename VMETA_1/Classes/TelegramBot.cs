@@ -1262,7 +1262,7 @@ namespace VMETA_1.Classes
                                     break;
                                 case "callback_data_40":
 
-                                    string totaltopstr = "CLASSIFICA TOP 10";
+                                    string totaltopstr = "-- CLASSIFICA TOP 10 --";
                                     classificaMtx.WaitOne();
                                     int counterposition = 1;
                                     foreach (Person persona in topten)
@@ -1272,6 +1272,7 @@ namespace VMETA_1.Classes
                                         counterposition++;
                                     }
                                     classificaMtx.ReleaseMutex();
+                                    totaltopstr += "\n\nLa classifica si aggiorna alle 8:00 del mattino";
                                     await SendMessage(totaltopstr, FromId);
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
