@@ -460,16 +460,13 @@ namespace VMETA_1.Classes
                                                 else
                                                 {
                                                     WritingAnnoucement[id].Description = text_message;
-
-
-
                                                 }
                                             }
-
                                             if (WritingAnnoucement[id].Description != null && WritingAnnoucement[id].Title != null)
                                             {
                                                 //Inviare il riepilogo
                                                 await RiepilogoAnnuncio(id);
+                                                
                                             }
                                         }
                                     }
@@ -479,7 +476,6 @@ namespace VMETA_1.Classes
                                 {
                                     await CLEAR(id);
                                     await Menu(id);
-
                                 }
 
 
@@ -1770,7 +1766,7 @@ namespace VMETA_1.Classes
                     ADDTOCHAT(id, mes.MessageId);
                 }catch(Exception e) {
 
-                    Console.WriteLine("Nel SendMessage [text,id]");
+                    Console.WriteLine("Nel SendMessage [text,id]:\n"+e.Message);
 
                 }
             }
@@ -1857,7 +1853,7 @@ namespace VMETA_1.Classes
                      cancellationToken: cts.Token
           );
 
-           SendMessage("BOT AVVIATO", DavideID);
+           SendMessage("BOT RIAVVIATO - Attivare recezione", DavideID);
         }
         public async Task CLEAR(long id)
         {
