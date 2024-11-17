@@ -67,9 +67,17 @@ namespace VMETA_1.Classes
                 Model = "llama3",
                 Stream = true
             };
-           
-            _messages = (await ollama.SendChat(chatRequest, Streamer, cts.Token)).ToList();
-            return true;
+            try
+            {
+                _messages = (await ollama.SendChat(chatRequest, Streamer, cts.Token)).ToList();
+                return true;
+            }
+            catch (Exception ex) {
+
+                Console.WriteLine("C'è stata un errore di comunicazione http con ollama");
+                return false;
+            
+            }
         }
 
         public async Task<bool> TalkWithVanessa(string prompt,bool isContesutalized)
@@ -82,9 +90,18 @@ namespace VMETA_1.Classes
                 Model = "llama3",
                 Stream = true
             };
+            try
+            {
+                _messages = (await ollama.SendChat(chatRequest, Streamer, cts.Token)).ToList();
+                return true;
+            }
+            catch (Exception ex)
+            {
 
-            _messages = (await ollama.SendChat(chatRequest, Streamer, cts.Token)).ToList();
-            return true;
+                Console.WriteLine("C'è stata un errore di comunicazione http con ollama, la porta non ha risposto correttamente oppure non è stata trovata");
+                return false;
+
+            }
         }
 
 
