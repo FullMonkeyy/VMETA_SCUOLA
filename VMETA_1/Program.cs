@@ -749,6 +749,7 @@ async void AnalizzaCoda()
 
             while (BotResponse.Length > 2) 
             {
+                BotResponse = "";
                 await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
             }
@@ -793,7 +794,12 @@ async void AnalizzaCoda()
                 BotResponse = "";
 
                 await _core.TalkWithVanessa("Pensi ancora che la segnalazione contenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                while (BotResponse.Length > 2)
+                {
+                    BotResponse = "";
+                    await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
+                }
 
                 if (BotResponse.Equals("NO"))
                 {
@@ -872,7 +878,12 @@ async void AnalizzaCodaLettere()
 
             _core.CLEARCONTEXT();
             await _core.TalkWithVanessa(final, true);
+            while (BotResponse.Length > 2)
+            {
+                BotResponse = "";
+                await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
+            }
 
             if (BotResponse.Contains("NO"))
             {
@@ -891,7 +902,12 @@ async void AnalizzaCodaLettere()
                 BotResponse = "";
 
                 await _core.TalkWithVanessa("Pensi ancora che \n\n\" " + testing.Body + "\"\n\ncontenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                while (BotResponse.Length > 2)
+                {
+                    BotResponse = "";
+                    await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
+                }
 
                 if (BotResponse.Contains("NO"))
                 {
@@ -944,7 +960,12 @@ async void AnalizzaCodaAnnuncio() {
 
             _core.CLEARCONTEXT();
             await _core.TalkWithVanessa(final, true);
+            while (BotResponse.Length > 2)
+            {
+                BotResponse = "";
+                await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
+            }
 
             if (BotResponse.Equals("NO"))
             {
@@ -976,7 +997,12 @@ async void AnalizzaCodaAnnuncio() {
                 BotResponse = "";
 
                 await _core.TalkWithVanessa("Pensi ancora che la segnalazione contenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                while (BotResponse.Length > 2)
+                {
+                    BotResponse = "";
+                    await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
+                }
 
                 if (BotResponse.Equals("NO"))
                 {
