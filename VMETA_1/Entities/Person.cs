@@ -52,6 +52,13 @@
             return Name + " " + Surname;
             else return Name;
         }
+        //public override bool Equals(object? obj)
+        //{
+        //    if (obj == null || !(obj is Person)) return false;
+        //    Person other= obj as Person;    
+        //    if(Name.Equals(other.Name)&& Surname.Equals(other.Surname)) return true;
+        //    else return false;
+        //}
 
     }
 }

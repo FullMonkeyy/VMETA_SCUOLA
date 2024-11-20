@@ -1853,6 +1853,7 @@ namespace VMETA_1.Classes
           );
 
            SendMessage("BOT RIAVVIATO - Attivare recezione", DavideID);
+          
         }
         public async Task CLEAR(long id)
         {

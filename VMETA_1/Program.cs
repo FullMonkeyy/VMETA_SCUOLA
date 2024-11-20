@@ -1092,9 +1092,50 @@ async Task ResettaTutto()
 
 }
 
+async Task RimuoviDuplicati() { 
+
+    List<Person> daRimuover=new List<Person>();
+    List<Person> tmp= new List<Person> ();
+    List<Person> tmp1 = new List<Person>();
+    List<Person> tmp2 = new List<Person>();
+    Person pers;
+    foreach (Person p in schoolContext.Students) {
+        
+        if (!daRimuover.Contains(p))
+        {
+            tmp.Clear();
+            tmp.AddRange(schoolContext.Students.Where(x => x.Name.Equals(p.Name) && x.Surname.Equals(p.Surname)));
+            if (tmp.Count > 1)
+            {
+
+                if (tmp.Exists(x => x.TelegramId != -1))
+                {
+
+                    pers = tmp.Find(x => x.TelegramId != -1);
+
+                    if (pers != null)
+                    {
+                        tmp.Remove(pers);
+                    }
+                }
+                else
+                {
+
+                    tmp.Remove(tmp[0]);
+
+                }
+                daRimuover.AddRange(tmp);
+            }
+        }
+    }
+
+    schoolContext.RemoveRange(daRimuover);
 
 
+}
 
+
+await RimuoviDuplicati();
 
 app.Run();
 
