@@ -22,6 +22,7 @@ namespace VMETA_1.Models
             Surname = p.Surname;
             Email = p.Email;
             Phone = p.Phone;
+            if(p.Classroom != null)
             Classroom=p.Classroom.ToString();
             Problems = new List<ProblemModel>();
             p.Problem.ForEach(x=> Problems.Add(new ProblemModel(x)));

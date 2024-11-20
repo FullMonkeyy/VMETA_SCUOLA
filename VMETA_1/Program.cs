@@ -1099,12 +1099,14 @@ async Task RimuoviDuplicati() {
     List<Person> tmp1 = new List<Person>();
     List<Person> tmp2 = new List<Person>();
     Person pers;
-    foreach (Person p in schoolContext.Students) {
+    tmp2 = schoolContext.Students.ToList();
+    foreach (Person p in tmp2) {
         
         if (!daRimuover.Contains(p))
         {
             tmp.Clear();
-            tmp.AddRange(schoolContext.Students.Where(x => x.Name.Equals(p.Name) && x.Surname.Equals(p.Surname)));
+            tmp1 = schoolContext.Students.Where(x => x.Name.Equals(p.Name) && x.Surname.Equals(p.Surname)).ToList();
+            tmp.AddRange(tmp1);
             if (tmp.Count > 1)
             {
 
@@ -1128,14 +1130,19 @@ async Task RimuoviDuplicati() {
             }
         }
     }
+    foreach (Person p in daRimuover) {
 
+        p.Classroom = null;
+        p.Announcements = null;        
+    
+    }
     schoolContext.RemoveRange(daRimuover);
-
+    schoolContext.SaveChanges();
 
 }
 
 
-await RimuoviDuplicati();
+//await RimuoviDuplicati();
 
 app.Run();
 
