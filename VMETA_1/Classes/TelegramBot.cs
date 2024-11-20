@@ -104,13 +104,11 @@ namespace VMETA_1.Classes
                      cancellationToken: cts.Token
             );
             SendMessage("BOT AVVIATO", DavideID);
-            NumMaxEmails = 100;
+            NumMaxEmails = 150;
 
         }
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Telegram.Bot.Types.Update update, CancellationToken cancellationToken)
-        {
-
-            
+        {           
 
             if (active)
             {
@@ -209,7 +207,7 @@ namespace VMETA_1.Classes
                             else if (text_message.StartsWith("/email:"))
                             {
                                 int numtmp = schoolContext.Students.Count();
-                                if (numtmp > NumMaxEmails)
+                                if (numtmp < NumMaxEmails)
                                 {
 
                                     Person tmp33 = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
