@@ -742,10 +742,17 @@ async void AnalizzaCoda()
             Problem testing = _problem_queue.Dequeue();
             testing.AI_Analyzing = true;
 
-            string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
+            string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO E SOLTANTO \"SI\" in caso AFFERMATIVO scrivi solo \"NO\"  in caso NEGATIVO\n\n\n" + testing.ToString();
             BotResponse = "";
             _core.CLEARCONTEXT();
             await _core.TalkWithVanessa(final,true);
+
+            do
+            {
+                await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
+
+            } while (BotResponse.Length > 2);
+
 
             if (BotResponse.Equals("NO"))
             {
