@@ -744,8 +744,8 @@ async void AnalizzaCoda()
 
             string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
             BotResponse = "";
-
-            await _core.TalkWithVanessa(final);
+            _core.CLEARCONTEXT();
+            await _core.TalkWithVanessa(final,true);
 
             if (BotResponse.Equals("NO"))
             {
@@ -863,7 +863,9 @@ async void AnalizzaCodaLettere()
             string final = "Questo messaggio contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE, TERMINI OMOFOBI oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.Title;
             BotResponse = "";
 
-            await _core.TalkWithVanessa(final);
+            _core.CLEARCONTEXT();
+            await _core.TalkWithVanessa(final, true);
+
 
             if (BotResponse.Contains("NO"))
             {
@@ -933,7 +935,9 @@ async void AnalizzaCodaAnnuncio() {
             string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
             BotResponse = "";
 
-            await _core.TalkWithVanessa(final);
+            _core.CLEARCONTEXT();
+            await _core.TalkWithVanessa(final, true);
+
 
             if (BotResponse.Equals("NO"))
             {

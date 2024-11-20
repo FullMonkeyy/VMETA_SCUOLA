@@ -104,6 +104,12 @@ namespace VMETA_1.Classes
             }
         }
 
+        public void CLEARCONTEXT() {
+
+            _messages.Clear();
+
+
+        }
 
     }
 }
