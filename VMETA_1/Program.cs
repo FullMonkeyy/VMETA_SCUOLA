@@ -888,7 +888,7 @@ async void AnalizzaCodaLettere()
             if (BotResponse.Contains("NO"))
             {
 
-                mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA A CONDIZIONE CHE NON CI SIANO PAROLACCE, BESTEMMIE O MINACCIE DI MORTE.\n\nMESSAGGIO:\n{testing.Body}";
+                mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA.\n\nMESSAGGIO:\n{testing.Body}";
                 BotResponse = "";
 
                 await _core.TalkWithVanessa(mex);
