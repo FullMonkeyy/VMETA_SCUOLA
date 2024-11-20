@@ -747,11 +747,11 @@ async void AnalizzaCoda()
             _core.CLEARCONTEXT();
             await _core.TalkWithVanessa(final,true);
 
-            do
+            while (BotResponse.Length > 2) 
             {
                 await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
-            } while (BotResponse.Length > 2);
+            }
 
 
             if (BotResponse.Equals("NO"))
