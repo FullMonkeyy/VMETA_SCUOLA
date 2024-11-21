@@ -11,7 +11,7 @@ namespace VMETA_1.Classes
         ChatRequest chatRequest;
         IResponseStreamer<ChatResponseStream?> Streamer;
         CancellationTokenSource cts;
-
+        int intialcountMessages;
 
         public VanessaCore(IResponseStreamer<ChatResponseStream?> streamer)
         {
@@ -19,16 +19,16 @@ namespace VMETA_1.Classes
             //RELEASE: http://192.168.1.52:11434
 
             //FAI ATTENZIONE AL MODELLO SCRITTO NELLA REQUEST
-            ollama = new OllamaApiClient(new Uri("http://192.168.1.52:11434"));
-           
-            _messages = new List<Message>();
+            ollama = new OllamaApiClient(new Uri("http://localhost:11434"));
+            intialcountMessages = 0;
+             _messages = new List<Message>();
             Streamer = streamer;
             cts = new CancellationTokenSource();
 
             List<Messaggio> messaggini = GestioneFile.ReadXMLConversation(GestioneFile.path3);
             foreach (Messaggio messaggio in messaggini)
             {
-
+                intialcountMessages++;
                 if (messaggio.Role.Equals("User"))
                 {
                     _messages.Add(new Message(ChatRole.User, messaggio.Message));
@@ -106,7 +106,15 @@ namespace VMETA_1.Classes
 
         public void CLEARCONTEXT() {
 
-            _messages.Clear();
+            int numtot = _messages.Count;
+
+            for (int i = numtot-1; i>= intialcountMessages; i--)
+            {
+
+                _messages.RemoveAt(i);
+
+            }
+            
 
 
         }

@@ -52,7 +52,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-string telegramAPI= apirelease; 
+string telegramAPI= apidev; 
 TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
@@ -742,7 +742,9 @@ async void AnalizzaCoda()
             Problem testing = _problem_queue.Dequeue();
             testing.AI_Analyzing = true;
 
-            string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO E SOLTANTO \"SI\" in caso AFFERMATIVO scrivi solo \"NO\"  in caso NEGATIVO\n\n\n" + testing.ToString();
+            //string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO E SOLTANTO \"SI\" in caso AFFERMATIVO scrivi solo \"NO\"  in caso NEGATIVO\n\n\n" + testing.ToString();
+
+            string final = "Questa segnalazione contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
             BotResponse = "";
             _core.CLEARCONTEXT();
             await _core.TalkWithVanessa(final,true);
@@ -873,7 +875,8 @@ async void AnalizzaCodaLettere()
             testing = _letter_queue.Dequeue();
             testing.AI_Analyzing = true;
             string mex;
-            string final = "Questo messaggio contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE, TERMINI OMOFOBI oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.Title;
+            // string final = "Questo messaggio contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE, TERMINI OMOFOBI oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.Title;
+            string final = "Questo messaggio contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
             BotResponse = "";
 
             _core.CLEARCONTEXT();
@@ -888,6 +891,7 @@ async void AnalizzaCodaLettere()
             if (BotResponse.Contains("NO"))
             {
 
+                _core.CLEARCONTEXT();
                 mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA.\n\nMESSAGGIO:\n{testing.Body}";
                 BotResponse = "";
 
@@ -900,7 +904,7 @@ async void AnalizzaCodaLettere()
             else
             {
                 BotResponse = "";
-
+                _core.CLEARCONTEXT();
                 await _core.TalkWithVanessa("Pensi ancora che \n\n\" " + testing.Body + "\"\n\ncontenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
                 while (BotResponse.Length > 2)
                 {
@@ -955,7 +959,8 @@ async void AnalizzaCodaAnnuncio() {
             Announcement testing = _announcement_queue.Dequeue();
             testing.AI_Analyzing = true;
 
-            string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
+            //   string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
+            string final = "Quest'annuncio contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
             BotResponse = "";
 
             _core.CLEARCONTEXT();
