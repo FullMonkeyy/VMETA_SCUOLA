@@ -192,7 +192,7 @@ namespace VMETA_1.Classes
                             {
                                 await CLEAR(id);
                                 await SendMessage("Vanessa Meta avviata", id);
-                                await SendMessage("--- Versione 0.1 BetaRelease ---", id, false);
+                                await SendMessage("--- Versione 0.3  BetaRelease ---", id, false);
 
                                 if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                                 {
@@ -205,7 +205,7 @@ namespace VMETA_1.Classes
                                 }
                             }
                             else if (text_message.StartsWith("/email:"))
-                            {
+                            {/*
                                 int numtmp = schoolContext.Students.Count();
                                 if (numtmp < NumMaxEmails)
                                 {
@@ -302,7 +302,8 @@ namespace VMETA_1.Classes
                                 {
                                     await SendMessage("Numero massimo di registrazioni raggiunte.", id);
 
-                                }
+                                }*/
+                                await SendMessage("Questa funzionalità non è più disponibile.", id);
                             }
                             else if (text_message.Equals("/turn_off") && id.Equals(DavideID))
                             {
