@@ -1,5 +1,5 @@
 ﻿GetStudents();
-
+var primo = true;
 document.getElementById("inp_src_cognomi").addEventListener("input", () => {
 
     if (document.getElementById("inp_src_cognomi").value!="")
@@ -78,34 +78,40 @@ function DisplayStudents(Data) {
     
         img.id = Data[i]["name"] + " " + Data[i]["surname"] ;
         img.addEventListener("click", (event) => {
-            const options = {
-                method: 'DELETE' // Metodo della richiesta
-            };
-            const url = "/api/DeletePerson/" + event.currentTarget.id;
-            // Effettua la richiesta utilizzando fetch()
-            fetch(url, options)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nella richiesta DELETE');
-                    }
-                    console.log('Libro rimosso con successo.');
-                    window.location.reload();
-                    // Puoi gestire la risposta qui se necessario
-                })
-                .catch(error => {
-                    console.error('Si è verificato un errore:', error);
-                });
 
+            if (primo) {
+                primo = false;
+                const options = {
+                    method: 'DELETE' // Metodo della richiesta
+                };
+                const url = "/api/DeletePerson/" + event.currentTarget.id;
+                // Effettua la richiesta utilizzando fetch()
+                fetch(url, options)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Errore nella richiesta DELETE');
+                        }
+                        console.log('Libro rimosso con successo.');
+                        window.location.reload();
+                        // Puoi gestire la risposta qui se necessario
+                    })
+                    .catch(error => {
+                        console.error('Si è verificato un errore:', error);
+                    });
+            }
         })
         divo.appendChild(img)
       
         divo.addEventListener("click", async (ivent) => {
-            let total = ivent.currentTarget.id
-            tmp1 = total.split(" ")
-            if (tmp1[1] =="rappresentante")
-                await ChangeRole(tmp1[0], false)
-            else await ChangeRole(tmp1[0], true)
-            window.location.reload();
+            if (primo) {
+                primo = false;
+                let total = ivent.currentTarget.id
+                tmp1 = total.split(" ")
+                if (tmp1[1] == "rappresentante")
+                    await ChangeRole(tmp1[0], false)
+                else await ChangeRole(tmp1[0], true)
+                window.location.reload();
+            }
         })
         Container.appendChild(divo);
 
@@ -120,27 +126,27 @@ function DisplayStudents(Data) {
 
 
 }
-async function ChangeRole(id,isjuststudent) {
-    var endpoint
-    if (isjuststudent) {
-        endpoint = "api/MakeRappresentante/" + id
-        await fetch(endpoint, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-    }
-    else {
-        endpoint = "api/MakeStudent/" + id
-        await fetch(endpoint, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        });
-    }
-
+async function ChangeRole(id, isjuststudent) {
+        var endpoint
+        if (isjuststudent) {
+            endpoint = "api/MakeRappresentante/" + id
+            await fetch(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+        else {
+            endpoint = "api/MakeStudent/" + id
+            await fetch(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+    
 
 }
 function AddStudentProcess() {

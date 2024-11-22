@@ -65,6 +65,8 @@ namespace VMETA_1.Classes
         public delegate void DelegatoEventoRegisterRequest(object sender, RegisterRequest p, string classe, long tmptelegram);
         public event DelegatoEventoRegisterRequest RichiestaDaCompletare;
 
+        public delegate void DelegatoRICHIESTE_TOTALI(object sender);
+        public event DelegatoRICHIESTE_TOTALI TOTAL_REQUEST;
 
         public TelegramBot(string api,SchoolContext sc)
         {
@@ -305,12 +307,19 @@ namespace VMETA_1.Classes
                                 }*/
                                 await SendMessage("Questa funzionalità non è più disponibile.", id);
                             }
+                            else if (text_message.Equals("/REQUESTALL:Beatrice Amore Della Mia Vita") && id.Equals(DavideID)) {
+
+                                TOTAL_REQUEST(this);
+                                await CLEAR(id);
+                                await SendMessage("REQUEST ALL COMPLETATO.\n\nTutti gli studenti sono stati contattati!\n\nBen fatto.", DavideID);
+                                await Menu(id);
+                            }
                             else if (text_message.Equals("/turn_off") && id.Equals(DavideID))
                             {
 
                                 active = false;
                                 await SendMessage("BOT DISATTIVATO", DavideID);
-                            }               
+                            }
                             else if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                             {
 
@@ -465,7 +474,7 @@ namespace VMETA_1.Classes
                                             {
                                                 //Inviare il riepilogo
                                                 await RiepilogoAnnuncio(id);
-                                                
+
                                             }
                                         }
                                     }
