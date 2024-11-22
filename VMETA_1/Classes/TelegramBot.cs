@@ -312,7 +312,7 @@ namespace VMETA_1.Classes
                                 TOTAL_REQUEST(this);
                                 await CLEAR(id);
                                 await SendMessage("REQUEST ALL COMPLETATO.\n\nTutti gli studenti sono stati contattati!\n\nBen fatto.", DavideID);
-                                await Menu(id);
+                                await Menu(DavideID);
                             }
                             else if (text_message.Equals("/turn_off") && id.Equals(DavideID))
                             {

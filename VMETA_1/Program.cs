@@ -1202,7 +1202,7 @@ void CreaCodiciERequest()
     GestioneFile.WriteXMLRequestRegister(TelegramCodes);
     int total;
     List<string> mancanti = new List<string>();
-    total = GestioneFile.GetCSVLines("EMAILTEST_SOLODAVIDE.csv").Count();
+    total = GestioneFile.GetCSVLines("Email.csv").Count();
     List<string> line_n_c_class = GestioneFile.GetCSVLines("nomi_cognomi_classi.csv");
     List<string> lines1 = new List<string>();
     RegisterRequest rq;
@@ -1211,7 +1211,7 @@ void CreaCodiciERequest()
     string[] attributes, attributes2;
     TelegramCodes = GestioneFile.ReadXMLRequestRegister();
     Person p;
-    foreach (string line in GestioneFile.GetCSVLines("EMAILTEST_SOLODAVIDE.csv"))
+    foreach (string line in GestioneFile.GetCSVLines("Email.csv"))
     {
 
         if (schoolContext.Students.ToList().Exists(x => x.Email.Equals(line.Split(",")[2])))
