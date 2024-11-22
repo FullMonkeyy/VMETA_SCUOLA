@@ -15,6 +15,8 @@ using VMETA_1.Entities;
 using VMETA_1.Models;
 using System.Text;
 using System;
+using System.Text.RegularExpressions;
+using Azure.Identity;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -1183,8 +1185,112 @@ async Task RimuoviDuplicati() {
 
 }
 
-
+await ResettaTutto();
 //await RimuoviDuplicati();
+TelegramCodes = GestioneFile.ReadXMLRequestRegister();
+TelegramCodes.Clear();
+GestioneFile.WriteXMLRequestRegister(TelegramCodes);
+int total;
+List<string> mancanti=new List<string>();
+async Task CreaCodiciERequest()
+{
+    total = GestioneFile.GetCSVLines("EMAILTEST_SOLODAVIDE.csv").Count();
+    List<string> line_n_c_class = GestioneFile.GetCSVLines("nomi_cognomi_classi.csv");
+    List<string> lines1 = new List<string>();
+    RegisterRequest rq;
+    Classroom tmpcls;
+    string nome, cognome, email, classe, code;
+    string[] attributes, attributes2;
+    TelegramCodes = GestioneFile.ReadXMLRequestRegister();
+    Person p;
+    foreach (string line in GestioneFile.GetCSVLines("EMAILTEST_SOLODAVIDE.csv"))
+    {
+
+        if (schoolContext.Students.ToList().Exists(x => x.Email.Equals(line.Split(",")[2])))
+        {
+
+            continue;
+        }
+
+        email = line.Split(",")[2];
+        string emailRegex = @"^s-([a-zA-Z0-9]{2,})\.([a-zA-Z0-9]{2,})@isiskeynes\.it$";
+
+        if (Regex.IsMatch(email, emailRegex))
+        {
+
+            lines1.Add(email);
+            nome = line.Split(",")[0];
+            cognome = line.Split(",")[1];
+            classe = "";
+            foreach (string lineclasse in line_n_c_class)
+            {
+
+
+                attributes2 = lineclasse.Split(";");
+                if (attributes2.Count() == 3)
+                {
+
+                    if (attributes2[0].ToLower().Contains(cognome.ToLower()) && attributes2[1].ToLower().Contains(nome.ToLower()))
+                    {
+
+                        classe = attributes2[2];
+                        break;
+                    }
+
+                }
+            }
+
+
+            if (nome != "" && cognome != "" && classe != "")
+            {
+
+                nome = char.ToUpper(nome[0]) + nome.Substring(1).ToLower();
+                cognome = char.ToUpper(cognome[0]) + cognome.Substring(1).ToLower();
+                //Console.WriteLine("Ho preparato la registrazione di " + nome + " " + cognome);
+
+
+                string year = classe[0] + "";
+                string sect = classe[1] + "";
+                string spec = classe.Substring(2);
+
+
+                tmpcls = schoolContext.Classrooms.FirstOrDefault(x => x.Year.Equals(year) && x.Section.Equals(sect) && x.Specialization.Equals(spec));
+
+                //tmpcls = new Classroom(year, sect, spec);
+                p = new Person(nome, cognome, DateTime.MinValue, tmpcls, -1, email, "nessuno", false);
+
+                do
+                {
+                    code = GenerateRandomString(8);
+                    code = code.ToUpper();
+
+                } while (TelegramCodes.Exists(x => x.Code.Equals(code)));
+
+                if (telegramBot.RegisterNewAccountRequest(nome, cognome, code, email))
+                {
+                    schoolContext.Students.Add(p);
+                    schoolContext.SaveChanges();
+                }
+
+                //RELEASE      
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {nome},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{code}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
+
+                //TEST
+                //emailServiceVMeta.SendEmail("VMeta autenticazione - TEST STRAORDINARIO", "Codice sicurezza", $"\n\nCiao {nome}, <br> Questa è una email di test (per farti capire questa email l'hanno ricevuta tipo in 10 [compreso io lmao]).<br>Comunque per fare questo test utiliziamo un bot differente che ho linkato successivamente.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{code}</b><br>A questo bot: <a href='https://t.me/Dev_Dav_bot'>VMeta - DEVELOPER</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
+
+
+
+            }
+            else
+            {
+                Console.WriteLine("Non sono riuscito a recuperare le informazioni dell'email: " + email);
+                mancanti.Add(line);
+            }
+        }
+    }
+}
+await CreaCodiciERequest();
+TelegramCodes = GestioneFile.ReadXMLRequestRegister();
 
 app.Run();
 
