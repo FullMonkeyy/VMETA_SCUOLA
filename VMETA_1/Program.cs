@@ -1185,13 +1185,14 @@ async Task RimuoviDuplicati() {
 
 }
 
-await ResettaTutto();
-//await RimuoviDuplicati();
+
+
 TelegramCodes = GestioneFile.ReadXMLRequestRegister();
 TelegramCodes.Clear();
 GestioneFile.WriteXMLRequestRegister(TelegramCodes);
 int total;
 List<string> mancanti=new List<string>();
+
 async Task CreaCodiciERequest()
 {
     total = GestioneFile.GetCSVLines("EMAILTEST_SOLODAVIDE.csv").Count();
@@ -1289,8 +1290,8 @@ async Task CreaCodiciERequest()
         }
     }
 }
+
 await CreaCodiciERequest();
-TelegramCodes = GestioneFile.ReadXMLRequestRegister();
 
 app.Run();
 

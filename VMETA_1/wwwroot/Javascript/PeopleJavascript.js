@@ -81,7 +81,7 @@ function DisplayStudents(Data) {
             const options = {
                 method: 'DELETE' // Metodo della richiesta
             };
-            const url = "/api/DeletePerson/" + event.target.id;
+            const url = "/api/DeletePerson/" + event.currentTarget.id;
             // Effettua la richiesta utilizzando fetch()
             fetch(url, options)
                 .then(response => {
@@ -202,7 +202,7 @@ async function Elimina(nome) {
     };
     const url = "/api/DeletePerson/" + nome;
     // Effettua la richiesta utilizzando fetch()
-    fetch(url, options)
+    await fetch(url, options)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Errore nella richiesta DELETE');
