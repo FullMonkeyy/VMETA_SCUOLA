@@ -34,9 +34,7 @@ namespace VMETA_1.Classes
             recipients: new EmailRecipients(new List<EmailAddress> { new EmailAddress(destinationEmail) }));
 
 
-            EmailSendOperation emailSendOperation = emailClient.Send(
-                WaitUntil.Completed,
-                emailMessage);
+            EmailSendOperation emailSendOperation = emailClient.Send( WaitUntil.Started,emailMessage);
 
 
 
