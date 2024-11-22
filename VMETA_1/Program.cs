@@ -54,14 +54,13 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-string telegramAPI= apidev; 
+string telegramAPI= apirelease; 
 TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
 telegramBot.AnnuncioPronta += AddAnnouncement;
 telegramBot.RichiestaDaCompletare += NewPerson;
-telegramBot.TOTAL_REQUEST += RequestAll;
 IResponseStreamer<ChatResponseStream?> Streamer = null;
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 Thread AiProblemSender = new Thread(AnalizzaCoda);
@@ -732,11 +731,6 @@ void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegra
         Console.WriteLine("Nuovo tizio inserito");
     }
 }
-void RequestAll(object sender) {
-
-    CreaCodiciERequest();
-
-};
 
 async void AnalizzaCoda()
 {
@@ -1116,7 +1110,7 @@ async Task FottiClassi()
     }
 
 }
-
+/*
 async Task ResettaTutto()
 {
     foreach (Person per in schoolContext.Students)
@@ -1141,7 +1135,7 @@ async Task ResettaTutto()
     
 
 }
-
+*/
 async Task RimuoviDuplicati() { 
 
     List<Person> daRimuover=new List<Person>();
@@ -1193,15 +1187,14 @@ async Task RimuoviDuplicati() {
 
 
 
+TelegramCodes = GestioneFile.ReadXMLRequestRegister();
+TelegramCodes.Clear();
+GestioneFile.WriteXMLRequestRegister(TelegramCodes);
+int total;
+List<string> mancanti=new List<string>();
 
-void CreaCodiciERequest()
+async Task CreaCodiciERequest()
 {
-
-    TelegramCodes = GestioneFile.ReadXMLRequestRegister();
-    TelegramCodes.Clear();
-    GestioneFile.WriteXMLRequestRegister(TelegramCodes);
-    int total;
-    List<string> mancanti = new List<string>();
     total = GestioneFile.GetCSVLines("EMAILTEST_SOLODAVIDE.csv").Count();
     List<string> line_n_c_class = GestioneFile.GetCSVLines("nomi_cognomi_classi.csv");
     List<string> lines1 = new List<string>();
@@ -1297,6 +1290,8 @@ void CreaCodiciERequest()
         }
     }
 }
+
+await CreaCodiciERequest();
 
 app.Run();
 
