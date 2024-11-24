@@ -54,7 +54,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-string telegramAPI= apirelease; 
+string telegramAPI= apidev; 
 TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
@@ -899,14 +899,12 @@ async void AnalizzaCodaLettere()
             if (BotResponse.Contains("NO"))
             {
 
-                _core.CLEARCONTEXT();
-                mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA.\n\nMESSAGGIO:\n{testing.Body}";
-                BotResponse = "";
+                //_core.CLEARCONTEXT();
+               // mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA.\n\nMESSAGGIO:\n{testing.Body}";
+                //BotResponse = "";
 
-                await _core.TalkWithVanessa(mex);
-                testing.Title = testing.Body;
-                testing.Body = BotResponse;
-                BotResponse = "";
+                //await _core.TalkWithVanessa(mex);
+                testing.Title = testing.Body;             
                 await telegramBot.SendLetter(testing);
             }
             else
@@ -923,13 +921,13 @@ async void AnalizzaCodaLettere()
 
                 if (BotResponse.Contains("NO"))
                 {
-                    mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA A CONDIZIONE CHE NON CI SIANO PAROLACCE, BESTEMMIE O MINACCIE DI MORTE.\n\nMESSAGGIO:\n{testing.Body}";
+                    /*mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA A CONDIZIONE CHE NON CI SIANO PAROLACCE, BESTEMMIE O MINACCIE DI MORTE.\n\nMESSAGGIO:\n{testing.Body}";
                     BotResponse = "";
 
                     await _core.TalkWithVanessa(mex);
                     testing.Title = testing.Body;
-                    testing.Body = BotResponse;
-                    BotResponse = "";
+                    testing.Body = BotResponse;*/
+                    testing.Title = testing.Body;
                     await telegramBot.SendLetter(testing);
 
                 }
