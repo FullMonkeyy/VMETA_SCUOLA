@@ -28,17 +28,17 @@
                 if (!Author.Equals("ADMIN"))
                 {
                     if (Author != null && Destination != null)
-                        return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da {Author} per {Destination}\n\nSpedito il {InsertionDate.ToLongDateString()}";
+                        return $"Messaggio:\n{Body}\n\n-Messaggio inviato da {Author} per {Destination}\n\nSpedito il {InsertionDate.ToLongDateString()}";
                     else if (Destination != null)
-                        return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato per {Destination} ";
+                        return $"Messaggio:\n{Body}\n\n-Messaggio inviato da {Author} per {Destination} ";
                     else
-                        return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}";
+                        return $"Messaggio:\n{Body}";
                 }
                 return $"---NOTIFICA DI SISTEMA---\n\n{Title}\n\n{Body}";
             }
             catch (Exception ex)
             {
-                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\nSpedito il {InsertionDate.ToLongDateString()}";
+                return $"Messaggio:\n{Body}\n\nSpedito il {InsertionDate.ToLongDateString()}";
             }
         }
 
