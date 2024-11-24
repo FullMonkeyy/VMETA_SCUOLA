@@ -29,7 +29,7 @@ builder.Services.AddSwaggerGen();
 List<RegisterRequest> TelegramCodes = new List<RegisterRequest>();
 
 EmailServiceVMeta emailServiceVMeta = new EmailServiceVMeta();
-//emailServiceVMeta.SendEmail("OGGETTO LETTERA3", "TITOLO DELLA LETTERA", "CORPO DELLA LETTERA");
+//emailServiceVMeta.SendEmail("OGGETTO LETTERA3", "TITOLO DELLA LETTERA", $"Ciao Davide,<br> questo è il tuo personale codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:code</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br>VMeta ti permetterà di:<br><br>- Segnalare a noi rappresentanti problematiche di qualsiasi tipo<br>- Rispondere ai nostri sondaggi (su gite, assemblee corsi etc)<br>- Scrivere annunci<br>- E molto altro<br><br>VMeta è da considerarsi uno strumento per lo studente perciò deve essere utilizzato responsabilmente.<br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto d'identità</b>.<br><br>Cordialmente,<br><br>-VMeta","s-scapellato.davide@isiskeynes.it");
 VanessaCore _core = null;
 SchoolContext schoolContext = new SchoolContext();
 
@@ -54,7 +54,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-string telegramAPI= apidev; 
+string telegramAPI= apirelease; 
 TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
@@ -1116,7 +1116,7 @@ async Task FottiClassi()
     }
 
 }
-
+/*
 async Task ResettaTutto()
 {
     foreach (Person per in schoolContext.Students)
@@ -1141,7 +1141,7 @@ async Task ResettaTutto()
     
 
 }
-
+*/
 async Task RimuoviDuplicati() { 
 
     List<Person> daRimuover=new List<Person>();
@@ -1281,7 +1281,7 @@ void CreaCodiciERequest()
                 }
 
                 //RELEASE      
-                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {nome},<br> questo è il tuo personale codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{code}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto d'identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {nome},<br> questo è il tuo personale codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{code}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br>VMeta ti permetterà di:<br><br>- Segnalare a noi rappresentanti problematiche di qualsiasi tipo<br>- Rispondere ai nostri sondaggi (su gite, assemblee corsi etc)<br>- Scrivere annunci<br>- E molto altro<br><br>VMeta è da considerarsi uno strumento per lo studente perciò deve essere utilizzato responsabilmente.<br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto d'identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
 
                 //TEST
                 //emailServiceVMeta.SendEmail("VMeta autenticazione - TEST STRAORDINARIO", "Codice sicurezza", $"\n\nCiao {nome}, <br> Questa è una email di test (per farti capire questa email l'hanno ricevuta tipo in 10 [compreso io lmao]).<br>Comunque per fare questo test utiliziamo un bot differente che ho linkato successivamente.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{code}</b><br>A questo bot: <a href='https://t.me/Dev_Dav_bot'>VMeta - DEVELOPER</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
