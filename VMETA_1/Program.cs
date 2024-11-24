@@ -54,13 +54,14 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-string telegramAPI= apirelease; 
+string telegramAPI = apirelease;
 TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
 telegramBot.AnnuncioPronta += AddAnnouncement;
 telegramBot.RichiestaDaCompletare += NewPerson;
+telegramBot.TOTAL_REQUEST += RequestAll;
 IResponseStreamer<ChatResponseStream?> Streamer = null;
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 Thread AiProblemSender = new Thread(AnalizzaCoda);
@@ -102,7 +103,7 @@ app.UseHttpsRedirection();
 //GET
 app.MapGet("/api/Start", () =>
 {
-     return Results.Ok("grande");
+    return Results.Ok("grande");
 });
 app.MapGet("/api/GetResponse", async () => {
 
@@ -151,7 +152,7 @@ app.MapGet("/api/GetProblems", async () =>
     {
         models.Add(new ProblemModel(p));
     }
-    models.Sort((x,y)=> x.Person.CompareTo(y.Person));
+    models.Sort((x, y) => x.Person.CompareTo(y.Person));
     return Results.Ok(models);
 
 });
@@ -184,7 +185,7 @@ app.MapGet("/api/GetAnnouncements", async () =>
 app.MapGet("/api/SearchStudentsCognome/{cognome}", async (string cognome) => {
 
     List<PersonModel> tmp = new List<PersonModel>();
-    foreach(Person p in schoolContext.Students.Include(x=> x.Classroom).Where(x=> x.Surname.ToLower().StartsWith(cognome.ToLower())))
+    foreach (Person p in schoolContext.Students.Include(x => x.Classroom).Where(x => x.Surname.ToLower().StartsWith(cognome.ToLower())))
     {
         tmp.Add(new PersonModel(p));
     }
@@ -205,7 +206,7 @@ app.MapPost("/api/SendMessage", async (JsonObject json) =>
     Message? message = JsonConvert.DeserializeObject<Message>(jasonstring);
 
 
-    await _core.TalkWithVanessa(message.Content,true);
+    await _core.TalkWithVanessa(message.Content, true);
 
     /////////////////////////////////////////
     return Results.Accepted("id libro:");
@@ -234,11 +235,11 @@ app.MapPost("/api/SendPerson", async (JsonObject json) =>
         string Cognome = ja[1].Value.ToString();
         string email = ja[4].Value.ToString();
         string Phonw = ja[5].Value.ToString();
-        string TelegramCODE="";
+        string TelegramCODE = "";
         TelegramCodes = GestioneFile.ReadXMLRequestRegister();
         if (ja[6].Value.ToString().Length >= 3)
         {
-            if (TelegramCodes.Exists(x=>x.Code.Equals(ja[6].Value.ToString())))
+            if (TelegramCodes.Exists(x => x.Code.Equals(ja[6].Value.ToString())))
             {
                 TCODEALREADYExists = true;
             }
@@ -251,12 +252,13 @@ app.MapPost("/api/SendPerson", async (JsonObject json) =>
             do
             {
                 tmpcode = GenerateRandomString(8);
-                tmpcode=tmpcode.ToUpper();
+                tmpcode = tmpcode.ToUpper();
 
-            } while (TelegramCodes.Exists(x => x.Code.Equals(ja[6].Value.ToString())));            
-            TelegramCODE=tmpcode;
+            } while (TelegramCodes.Exists(x => x.Code.Equals(ja[6].Value.ToString())));
+            TelegramCODE = tmpcode;
 
-            if (!(email.Length > 5 && email.Contains("@") && email.Contains("isiskeynes.it"))){
+            if (!(email.Length > 5 && email.Contains("@") && email.Contains("isiskeynes.it")))
+            {
                 emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", $"s-{Cognome.ToLower().Replace(" ", string.Empty)}.{Name.ToLower().Replace(" ", string.Empty)}@isiskeynes.it");
             }
             else
@@ -266,7 +268,8 @@ app.MapPost("/api/SendPerson", async (JsonObject json) =>
             }
         }
 
-        if (!TCODEALREADYExists) {
+        if (!TCODEALREADYExists)
+        {
 
             bool check;
             bool.TryParse(ja[7].Value.ToString(), out check);
@@ -274,7 +277,7 @@ app.MapPost("/api/SendPerson", async (JsonObject json) =>
             {
                 Person p = new Person(Name, Cognome, DateTime.MinValue, tmp, -1, email, Phonw, check);
 
-                if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE,email))
+                if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE, email))
                 {
 
                     schoolContext.Students.Add(p);
@@ -350,7 +353,7 @@ app.MapPost("/api/SendPool", async (JsonObject json) => {
 
             }
             schoolContext.SaveChanges();
-            Console.WriteLine("Ho creato il pool: "+newpool.Titolo);
+            Console.WriteLine("Ho creato il pool: " + newpool.Titolo);
         }
 
 
@@ -385,7 +388,7 @@ app.MapPost("/api/SendVoice", async (IFormFile file) =>
 });
 app.MapPost("/api/SendMessageALL", async (RequestSendMessage rsm) => {
 
-    List<string> list = new List<string>() {"E","R","1","2","3","4","5"};
+    List<string> list = new List<string>() { "E", "R", "1", "2", "3", "4", "5" };
 
     if (rsm == null)
         return Results.BadRequest("Nessun Request send message");
@@ -395,77 +398,77 @@ app.MapPost("/api/SendMessageALL", async (RequestSendMessage rsm) => {
         return Results.BadRequest("Titolo o Descrizione inconsistente");
     else
     {
-       
 
 
-            Letter letternew;
-            switch (rsm.Destination)
-            {
-                case "E":
-                    foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1))
-                    {
 
-                        letternew = new Letter();
-                        letternew.Author = "ADMIN";
-                        letternew.Destination = destination.ToString();
-                 
-                        letternew.People.Add(destination);
-                        letternew.Title = rsm.Title;
-                        letternew.Body = rsm.Body;
-                        letternew.AI_Forced = false;
+        Letter letternew;
+        switch (rsm.Destination)
+        {
+            case "E":
+                foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1))
+                {
 
-                        schoolContext.Letters.Add(letternew);
-
-                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
-                    }
-                    schoolContext.SaveChanges();
-                    break;
-                case "R":
-                    foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1 && x.isJustStudent))
-                    {
-
-                        letternew = new Letter();
-                        letternew.Author = "ADMIN";
-                        letternew.Destination = destination.ToString();
-         
-                        letternew.People.Add(destination);
-                        letternew.Title = rsm.Title;
-                        letternew.Body = rsm.Body;
-                        letternew.AI_Forced = false;
-
-                        schoolContext.Letters.Add(letternew);
-
-                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
-                    }
-                    schoolContext.SaveChanges();
-                    break;
-                default:
-
-                    foreach (Person destination in schoolContext.Students.Include(x => x.Classroom).Where(x => x.TelegramId != -1 && x.Classroom.Year.Equals(rsm.Destination)))
-                    {
-
-                        letternew = new Letter();
-                        letternew.Author = "ADMIN";
+                    letternew = new Letter();
+                    letternew.Author = "ADMIN";
                     letternew.Destination = destination.ToString();
 
-                        letternew.People.Add(destination);
-                        letternew.Title = rsm.Title;
-                        letternew.Body = rsm.Body;
-                        letternew.AI_Forced = false;
+                    letternew.People.Add(destination);
+                    letternew.Title = rsm.Title;
+                    letternew.Body = rsm.Body;
+                    letternew.AI_Forced = false;
 
-                        schoolContext.Letters.Add(letternew);
+                    schoolContext.Letters.Add(letternew);
 
-                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                    await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                }
+                schoolContext.SaveChanges();
+                break;
+            case "R":
+                foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1 && x.isJustStudent))
+                {
 
-                    }
-                    schoolContext.SaveChanges();
+                    letternew = new Letter();
+                    letternew.Author = "ADMIN";
+                    letternew.Destination = destination.ToString();
 
-                    break;
-            }
+                    letternew.People.Add(destination);
+                    letternew.Title = rsm.Title;
+                    letternew.Body = rsm.Body;
+                    letternew.AI_Forced = false;
 
-            return Results.Ok();
+                    schoolContext.Letters.Add(letternew);
 
-    
+                    await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                }
+                schoolContext.SaveChanges();
+                break;
+            default:
+
+                foreach (Person destination in schoolContext.Students.Include(x => x.Classroom).Where(x => x.TelegramId != -1 && x.Classroom.Year.Equals(rsm.Destination)))
+                {
+
+                    letternew = new Letter();
+                    letternew.Author = "ADMIN";
+                    letternew.Destination = destination.ToString();
+
+                    letternew.People.Add(destination);
+                    letternew.Title = rsm.Title;
+                    letternew.Body = rsm.Body;
+                    letternew.AI_Forced = false;
+
+                    schoolContext.Letters.Add(letternew);
+
+                    await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+
+                }
+                schoolContext.SaveChanges();
+
+                break;
+        }
+
+        return Results.Ok();
+
+
     }
 });
 //DELETE
@@ -483,11 +486,11 @@ app.MapDelete("/api/DeletePerson/{id}", async (string id) => {
     if (todelete != null)
     {
 
-       
+
         todelete.Classroom = null;
 
         schoolContext.Students.Remove(todelete);
-        if(todelete.Problem!=null)
+        if (todelete.Problem != null)
             schoolContext.Problems.RemoveRange(todelete.Problem);
         if (todelete.Announcements != null)
             schoolContext.Announcements.RemoveRange(todelete.Announcements);
@@ -529,12 +532,12 @@ app.MapDelete("/api/DeletePool/{id}", async (int id) =>
     {
 
 
-        
+
 
 
         schoolContext.Pools.Remove(todelete);
         schoolContext.SaveChanges();
-        Console.WriteLine("Ho eliminato il sondaggio: "+todelete.Titolo);
+        Console.WriteLine("Ho eliminato il sondaggio: " + todelete.Titolo);
         return Results.Accepted("Tolto");
 
     }
@@ -557,11 +560,11 @@ app.MapDelete("/api/DeleteAnnouncement/{id}", async (int id) =>
 
 });
 //PUT
-app.MapPut("/api/ModificaAI/{id}", async (int id) => { 
+app.MapPut("/api/ModificaAI/{id}", async (int id) => {
 
-    Problem problem = schoolContext.Problems.FirstOrDefault(x=> x.Id.Equals(id));
+    Problem problem = schoolContext.Problems.FirstOrDefault(x => x.Id.Equals(id));
 
-    if (problem!=null)
+    if (problem != null)
     {
         problem.AI_Forced = false;
         schoolContext.SaveChanges();
@@ -576,8 +579,9 @@ app.MapPut("/api/MakeRappresentante/{id}", async (string id) =>
     List<string> tmp = id.Split("_").ToList();
     Person p = await schoolContext.Students.FirstOrDefaultAsync(x => x.Name.Equals(tmp[0]) && x.Surname.Equals(tmp[1]));
 
-    if (p != null) { 
-    
+    if (p != null)
+    {
+
         p.isJustStudent = false;
         schoolContext.SaveChanges();
         return Results.Ok();
@@ -623,27 +627,29 @@ async Task NotificaNuovoPool(string title, Person p)
 void AddProblem(object sendere, Problem p)
 {
     mutex2.WaitOne();
- 
+
     _problem_queue.Enqueue(p);
     Queue<Problem> queuetmp = new Queue<Problem>(_problem_queue);
     _problem_queue.OrderByDescending(x => x.TrustPoints);
 
-    for (int i = 0; i < queuetmp.Count; i++) {
+    for (int i = 0; i < queuetmp.Count; i++)
+    {
 
         try
         {
-            if (queuetmp.ToList()[i]!= _problem_queue.ToList()[i])
+            if (queuetmp.ToList()[i] != _problem_queue.ToList()[i])
             {
-            _problem_queue.ToList()[i].TrustPoints += 0.25;
+                _problem_queue.ToList()[i].TrustPoints += 0.25;
             }
         }
-        catch (Exception e) {
+        catch (Exception e)
+        {
 
             Console.WriteLine("Nel AddProblem [text,id]");
         }
 
     }
-  
+
     mutex2.ReleaseMutex();
 }
 void AddLetter(object sender, Letter l)
@@ -662,7 +668,8 @@ void AddLetter(object sender, Letter l)
                 _letter_queue.ToList()[i].TrustPoints += 0.25;
             }
         }
-        catch(Exception e) {
+        catch (Exception e)
+        {
 
             Console.WriteLine("Eccezione nell'add letter");
         }
@@ -671,8 +678,9 @@ void AddLetter(object sender, Letter l)
 
     mutex1.ReleaseMutex();
 }
-void AddAnnouncement(object sender, Announcement a) {
-    
+void AddAnnouncement(object sender, Announcement a)
+{
+
     mutex3.WaitOne();
     _announcement_queue.Enqueue(a);
     Queue<Announcement> queuetmp = new Queue<Announcement>(_announcement_queue);
@@ -731,6 +739,12 @@ void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegra
         Console.WriteLine("Nuovo tizio inserito");
     }
 }
+void RequestAll(object sender)
+{
+
+    CreaCodiciERequest();
+
+};
 
 async void AnalizzaCoda()
 {
@@ -749,9 +763,9 @@ async void AnalizzaCoda()
             string final = "Questa segnalazione contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
             BotResponse = "";
             _core.CLEARCONTEXT();
-            await _core.TalkWithVanessa(final,true);
+            await _core.TalkWithVanessa(final, true);
 
-            while (BotResponse.Length > 2) 
+            while (BotResponse.Length > 2)
             {
                 BotResponse = "";
                 await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
@@ -766,26 +780,27 @@ async void AnalizzaCoda()
                 {
                     schoolContext.Problems.Add(testing);
                     schoolContext.SaveChanges();
-                   
+
 
                     await telegramBot.CLEAR(testing.Person.TelegramId);
                     await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
                     bool soluzone = false;
-                    if(testing.Solution== "Nessuna soluzione proposta.")
+                    if (testing.Solution == "Nessuna soluzione proposta.")
                     {
                         await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
                         testing.Person.TrustPoints += 0.25;
                     }
                     else if (testing.Solution != "-NOT SETTED5353453453435375698")
                     {
-                       await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                        await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
                         testing.Person.TrustPoints += 1;
                     }
                     schoolContext.SaveChanges();
                     await telegramBot.Menu(testing.Person.TelegramId);
                     telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
                 }
-                catch (Exception e) {
+                catch (Exception e)
+                {
                     schoolContext.Problems.Remove(testing);
                     telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
                     await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", testing.Person.TelegramId);
@@ -844,11 +859,11 @@ async void AnalizzaCoda()
                     await telegramBot.SendMessage("La richiesta non è stata accettata... Hai perso 0.50 trustpoints\nE' risultata inappropriata la segnalazione", testing.Person.TelegramId);
                     testing.Person.TrustPoints -= 0.50;
                     schoolContext.SaveChanges();
-                    testing.AI_Analyzing = false;                   
+                    testing.AI_Analyzing = false;
                     await telegramBot.Riepilogo(testing.Person.TelegramId, true);
 
                 }
-                
+
 
             }
 
@@ -865,11 +880,11 @@ async void AnalizzaCoda()
 async void AnalizzaCodaLettere()
 {
     Letter testing;
-    
+
 
     while (true)
     {
-     
+
         if (_letter_queue.Count > 0)
         {
 
@@ -929,16 +944,16 @@ async void AnalizzaCodaLettere()
                 }
                 else
                 {
-                    
-                    await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);                   
+
+                    await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
                     await telegramBot.SendMessage("Il messaggio non è stato accettato.\nHai perso 0.50 trustpoints", testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
                     testing.People.Find(x => x.ToString().Equals(testing.Author)).TrustPoints -= 0.50;
                     schoolContext.SaveChanges();
-                    testing.AI_Analyzing = false;                   
+                    testing.AI_Analyzing = false;
                     await telegramBot.RiepilogoLettera(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
 
                 }
-               
+
 
             }
 
@@ -946,11 +961,12 @@ async void AnalizzaCodaLettere()
 
 
         }
-        
+
         Thread.Sleep(20);
     }
 }
-async void AnalizzaCodaAnnuncio() {
+async void AnalizzaCodaAnnuncio()
+{
 
     while (true)
     {
@@ -1132,20 +1148,22 @@ async Task ResettaTutto()
     await FottiClassi();
     schoolContext.Classrooms.AddRange(robe);
     schoolContext.SaveChanges();
-    
 
-}
-*/
-async Task RimuoviDuplicati() { 
 
-    List<Person> daRimuover=new List<Person>();
-    List<Person> tmp= new List<Person> ();
+}*/
+
+async Task RimuoviDuplicati()
+{
+
+    List<Person> daRimuover = new List<Person>();
+    List<Person> tmp = new List<Person>();
     List<Person> tmp1 = new List<Person>();
     List<Person> tmp2 = new List<Person>();
     Person pers;
     tmp2 = schoolContext.Students.ToList();
-    foreach (Person p in tmp2) {
-        
+    foreach (Person p in tmp2)
+    {
+
         if (!daRimuover.Contains(p))
         {
             tmp.Clear();
@@ -1174,11 +1192,12 @@ async Task RimuoviDuplicati() {
             }
         }
     }
-    foreach (Person p in daRimuover) {
+    foreach (Person p in daRimuover)
+    {
 
         p.Classroom = null;
-        p.Announcements = null;        
-    
+        p.Announcements = null;
+
     }
     schoolContext.RemoveRange(daRimuover);
     schoolContext.SaveChanges();
@@ -1186,6 +1205,10 @@ async Task RimuoviDuplicati() {
 }
 
 
+
+
+void CreaCodiciERequest()
+{
 
     TelegramCodes = GestioneFile.ReadXMLRequestRegister();
     TelegramCodes.Clear();
@@ -1287,8 +1310,6 @@ async Task RimuoviDuplicati() {
         }
     }
 }
-
-await CreaCodiciERequest();
 
 app.Run();
 
