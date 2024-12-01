@@ -108,8 +108,8 @@ function DisplayStudents(Data) {
                 let total = ivent.currentTarget.id
                 tmp1 = total.split(" ")
                 if (tmp1[1] == "rappresentante")
-                    await ChangeRole(tmp1[0], false)
-                else await ChangeRole(tmp1[0], true)
+                    await ChangeRole(tmp1[tmp1.length-2], false)
+                else await ChangeRole(tmp1[tmp1.length - 2], true)
                 window.location.reload();
             }
         })
