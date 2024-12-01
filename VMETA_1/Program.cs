@@ -1340,24 +1340,27 @@ void CreaCodiciERequest()
 
 }
 
-void SaveStudents() {
+void SaveStudents(bool cond) {
 
-    string urldest="ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";
+    if (cond)
+    {
+        string urldest = "ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";
 
-    List<PersonModel> students = new List<PersonModel>();
+        List<PersonModel> students = new List<PersonModel>();
 
-    foreach (Person pm in schoolContext.Students.Include(x => x.Classroom)) {
+        foreach (Person pm in schoolContext.Students.Include(x => x.Classroom))
+        {
 
-        students.Add(new PersonModel(pm));
-            
+            students.Add(new PersonModel(pm));
+
+        }
+
+        GestioneFile.WriteXMLPersonModelRegister(students);
+        GestioneFile.WriteFTP("PeopleModels.xml", "ftp://ftp.scapellatodavide.altervista.org/PeopleModelsBackUp_DUE.xml");
     }
 
-    GestioneFile.WriteXMLPersonModelRegister(students);
-    GestioneFile.WriteFTP("PeopleModels.xml", "ftp://ftp.scapellatodavide.altervista.org/PeopleModelsBackUp.xml");
-
-
 }
-SaveStudents();
+SaveStudents(true);
 app.Run();
 
 
