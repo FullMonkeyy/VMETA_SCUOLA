@@ -12,6 +12,7 @@ namespace VMETA_1.Models
         public string Classroom { get; set; }
         public bool IsJustStudent { get; set; }
         public bool IsRegistred {  get; set; }
+        public long TelegramId {  get; set; }
 
         public List<ProblemModel> Problems { get; set; }   
 
@@ -36,6 +37,7 @@ namespace VMETA_1.Models
             }
 
             IsJustStudent=p.isJustStudent;
+            TelegramId = p.TelegramId;
 
         }
 

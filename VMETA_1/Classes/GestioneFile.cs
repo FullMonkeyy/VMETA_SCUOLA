@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.Serialization;
 using System.Net;
+using VMETA_1.Models;
 
 namespace VMETA_1.Classes
 {
@@ -19,7 +20,7 @@ namespace VMETA_1.Classes
         static public string _requestPath = @"RequestRegister.xml";
         static string _chatsPath = "TelegramChats.xml";
 
-        static string ftpAddress = "ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";  // URL FTP di destinazione
+        //static string ftpAddress = "ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";  // URL FTP di destinazione
         static string ftpUsername = "scapellatodavide";  // Nome utente FTP
         static string ftpPassword = "ft9pAyc9B5Zd";  // Password FTP
 
@@ -281,7 +282,31 @@ namespace VMETA_1.Classes
 
             return tmp;
         }
+        static public void WriteXMLPersonModelRegister(List<PersonModel> pmodel) {
 
+
+            StreamWriter sw = null;
+            try
+            {
+
+
+                sw = new StreamWriter("PeopleModels.xml", false);
+                XmlSerializer xmls = new XmlSerializer(typeof(List<PersonModel>));
+                xmls.Serialize(sw, pmodel);
+
+                sw.Close();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                if (sw != null)
+                    sw.Close();
+            }
+
+
+
+        }
 
         static public List<string> GetCSVLines(string filePath)
         {
@@ -308,12 +333,12 @@ namespace VMETA_1.Classes
         }
 
 
-        static public void WriteFTP(string filePath)
+        static public void WriteFTP(string filePath,string urlDestination)
         {
             try
             {
                 // Creazione richiesta FTP
-                FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpAddress);
+                FtpWebRequest request = (FtpWebRequest)WebRequest.Create(urlDestination);
                 request.Method = WebRequestMethods.Ftp.UploadFile;
 
                 // Impostazione credenziali FTP

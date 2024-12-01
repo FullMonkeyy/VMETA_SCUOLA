@@ -41,7 +41,7 @@ Queue<Announcement> _announcement_queue = new Queue<Announcement>();
 //TelegramBot telegramBot = new TelegramBot("7162917894:AAF54AXNjF0fauZW3vgUsxBbuYvaLogR5HM",schoolContext);
 //VANESSA
 
-GestioneFile.WriteFTP("TelegramChats.xml");
+//GestioneFile.WriteFTP("TelegramChats.xml");
 
 
 Mutex mutex = new Mutex();
@@ -1340,6 +1340,24 @@ void CreaCodiciERequest()
 
 }
 
+void SaveStudents() {
+
+    string urldest="ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";
+
+    List<PersonModel> students = new List<PersonModel>();
+
+    foreach (Person pm in schoolContext.Students.Include(x => x.Classroom)) {
+
+        students.Add(new PersonModel(pm));
+            
+    }
+
+    GestioneFile.WriteXMLPersonModelRegister(students);
+    GestioneFile.WriteFTP("PeopleModels.xml", "ftp://ftp.scapellatodavide.altervista.org/PeopleModelsBackUp.xml");
+
+
+}
+SaveStudents();
 app.Run();
 
 
