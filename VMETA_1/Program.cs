@@ -1344,7 +1344,7 @@ void SaveStudents(bool cond) {
 
     if (cond)
     {
-        string urldest = "ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";
+       
 
         List<PersonModel> students = new List<PersonModel>();
 
