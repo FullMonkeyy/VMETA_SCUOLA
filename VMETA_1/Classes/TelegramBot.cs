@@ -48,6 +48,7 @@ namespace VMETA_1.Classes
         Queue<Problem> ProblemiQueue;
         Thread QualityChecker;
         int NumMaxEmails;
+        Thread Restarter;
 
         public delegate void DelegatoEvento(object sender,Problem p);
         public event DelegatoEvento ProblemaPronto;
@@ -107,7 +108,7 @@ namespace VMETA_1.Classes
             );
             SendMessage("BOT AVVIATO", DavideID);
             NumMaxEmails = 150;
-
+            Restarter = new Thread(TimeReset);
         }
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Telegram.Bot.Types.Update update, CancellationToken cancellationToken)
         {           
@@ -1614,7 +1615,7 @@ namespace VMETA_1.Classes
                                                cancellationToken: cancellationToken);
 
             RiavvioNecessario(this);
-
+            Restarter.Start();
             return Task.CompletedTask;
         }
         public async Task Riepilogo(long id,bool force)
@@ -2116,6 +2117,12 @@ namespace VMETA_1.Classes
             }
             classificaMtx.ReleaseMutex();
 
+        }
+        void TimeReset() {
+
+            Thread.Sleep(60000);
+            active = true;
+            SendMessage("BOT ATTIVATO", DavideID);
         }
     }  
 }
