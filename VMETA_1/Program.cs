@@ -1356,7 +1356,9 @@ void SaveStudents(bool cond) {
         }
 
         GestioneFile.WriteXMLPersonModelRegister(students);
-        GestioneFile.WriteFTP("PeopleModels.xml", "ftp://ftp.scapellatodavide.altervista.org/PeopleModelsBackUp_DUE.xml");
+        GestioneFile.WriteFTP("PeopleModels.xml", "ftp://ftp.scapellatodavide.altervista.org/PeopleModelsBackUp.xml");
+        GestioneFile.WriteFTP("RequestRegister.xml", "ftp://ftp.scapellatodavide.altervista.org/RequestRegister.xml");
+
     }
 
 }
