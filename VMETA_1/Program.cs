@@ -630,8 +630,6 @@ async Task NotificaNuovoPool(string title, Person p)
     }
 
 }
-
-
 void AddProblem(object sendere, Problem p)
 {
     mutex2.WaitOne();
@@ -747,7 +745,6 @@ void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegra
         Console.WriteLine("Nuovo tizio inserito");
     }
 }
-
 
 void RequestAll(object sender)
 {
@@ -1134,7 +1131,6 @@ async Task FottiClassi()
     }
 
 }
-
 /*
 async Task ResettaTutto()
 {
@@ -1212,9 +1208,6 @@ async Task RimuoviDuplicati()
     schoolContext.SaveChanges();
 
 }
-
-
-
 
 void CreaCodiciERequest()
 {
