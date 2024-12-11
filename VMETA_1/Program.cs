@@ -1355,7 +1355,7 @@ void SaveStudents(bool cond) {
     }
 
 }
-SaveStudents(false);
+SaveStudents(true);
 app.Run();
 
 
