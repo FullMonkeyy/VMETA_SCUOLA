@@ -98,7 +98,7 @@ namespace VMETA_1.Classes
             catch (Exception ex)
             {
 
-                Console.WriteLine("C'è stata un errore di comunicazione http con ollama, la porta non ha risposto correttamente oppure non è stata trovata");
+                Console.WriteLine("C'è stata un errore di comunicazione http con ollama, la porta non ha risposto correttamente oppure non è stata trovata:\n\n"+ex.Message);
                 return false;
 
             }
