@@ -759,7 +759,7 @@ namespace VMETA_1.Classes
 
                                    
 
-                                    if (pet.Letters.TrueForAll(x => (tmp - x.InsertionDate).Days > 7))
+                                    if (pet.Letters.TrueForAll(x => (tmp - x.InsertionDate).Days > 1))
                                         procced = true;
                                     else
                                     {
