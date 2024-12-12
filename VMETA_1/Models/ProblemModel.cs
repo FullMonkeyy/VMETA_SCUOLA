@@ -16,6 +16,7 @@ namespace VMETA_1.Models
         public string InsertDate {  get; set; }
         public bool AIForced {  get; set; }
         public int Id {  get; set; }
+        public double TP {  get; set; }
 
         public ProblemModel() { }   
         public ProblemModel(Problem p)
@@ -35,6 +36,7 @@ namespace VMETA_1.Models
             InsertDate=p.DataInserimento.ToShortDateString();
             AIForced = p.AI_Forced;
             Id= p.Id;
+            TP = p.TrustPoints;
 
         }
 

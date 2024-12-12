@@ -69,8 +69,6 @@ Thread AiProblemSender = new Thread(AnalizzaCoda);
 Thread AILetterSender = new Thread(AnalizzaCodaLettere);
 Thread AIAnnouncementSender = new Thread(AnalizzaCodaAnnuncio);
 
-
-
 string BotResponse = "";
 Streamer = new ActionResponseStreamer<ChatResponseStream>((stream) =>
 {
@@ -153,7 +151,7 @@ app.MapGet("/api/GetProblems", async () =>
     {
         models.Add(new ProblemModel(p));
     }
-    models.Sort((x, y) => x.Person.CompareTo(y.Person));
+    models.OrderBy(x => x.TP);
     return Results.Ok(models);
 
 });
@@ -630,31 +628,12 @@ async Task NotificaNuovoPool(string title, Person p)
     }
 
 }
+
 void AddProblem(object sendere, Problem p)
 {
     mutex2.WaitOne();
 
-    _problem_queue.Enqueue(p);
-    Queue<Problem> queuetmp = new Queue<Problem>(_problem_queue);
-    _problem_queue.OrderByDescending(x => x.TrustPoints);
-
-    for (int i = 0; i < queuetmp.Count; i++)
-    {
-
-        try
-        {
-            if (queuetmp.ToList()[i] != _problem_queue.ToList()[i])
-            {
-                _problem_queue.ToList()[i].TrustPoints += 0.25;
-            }
-        }
-        catch (Exception e)
-        {
-
-            Console.WriteLine("Nel AddProblem [text,id]");
-        }
-
-    }
+    _problem_queue.Enqueue(p);  
 
     mutex2.ReleaseMutex();
 }
@@ -662,49 +641,19 @@ void AddLetter(object sender, Letter l)
 {
     mutex1.WaitOne();
     _letter_queue.Enqueue(l);
-    Queue<Letter> queuetmp = new Queue<Letter>(_letter_queue);
-    _letter_queue.OrderByDescending(x => x.TrustPoints);
-
-    for (int i = 0; i < queuetmp.Count; i++)
-    {
-        try
-        {
-            if (queuetmp.ToList()[i] != _letter_queue.ToList()[i])
-            {
-                _letter_queue.ToList()[i].TrustPoints += 0.25;
-            }
-        }
-        catch (Exception e)
-        {
-
-            Console.WriteLine("Eccezione nell'add letter");
-        }
-
-    }
-
+  
     mutex1.ReleaseMutex();
 }
 void AddAnnouncement(object sender, Announcement a)
 {
 
     mutex3.WaitOne();
-    _announcement_queue.Enqueue(a);
-    Queue<Announcement> queuetmp = new Queue<Announcement>(_announcement_queue);
-    _announcement_queue.OrderByDescending(x => x.TrustPoints);
-
-    for (int i = 0; i < queuetmp.Count; i++)
-    {
-
-        if (queuetmp.ToList()[i] != _announcement_queue.ToList()[i])
-        {
-            _announcement_queue.ToList()[i].TrustPoints += 0.25;
-        }
-
-    }
+    _announcement_queue.Enqueue(a);  
 
     mutex3.ReleaseMutex();
 
 }
+
 void ReStart(object sender)
 {
 
@@ -745,7 +694,6 @@ void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegra
         Console.WriteLine("Nuovo tizio inserito");
     }
 }
-
 void RequestAll(object sender)
 {
 
@@ -1355,7 +1303,7 @@ void SaveStudents(bool cond) {
     }
 
 }
-SaveStudents(true);
+
 app.Run();
 
 
