@@ -152,7 +152,7 @@ app.MapGet("/api/GetProblems", async () =>
     {
         models.Add(new ProblemModel(p));
     }
-    models.OrderBy(x => x.TP);
+    models.OrderByDescending(x => x.TP);
     return Results.Ok(models);
 
 });
