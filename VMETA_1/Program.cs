@@ -55,6 +55,7 @@ Semaphore semaphore = new Semaphore(1, 2000);
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
 string telegramAPI = apirelease;
+bool automaticBYPASS = true;
 TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 Thread RICHIEDI = new Thread(CreaCodiciERequest);
 telegramBot.ProblemaPronto += AddProblem;
@@ -711,63 +712,18 @@ async void AnalizzaCoda()
 
             semaphore.WaitOne();
             Problem testing = _problem_queue.Dequeue();
-            testing.AI_Analyzing = true;
 
-            //string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO E SOLTANTO \"SI\" in caso AFFERMATIVO scrivi solo \"NO\"  in caso NEGATIVO\n\n\n" + testing.ToString();
-
-            string final = "Questa segnalazione contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
-            BotResponse = "";
-            _core.CLEARCONTEXT();
-            await _core.TalkWithVanessa(final, true);
-
-            while (BotResponse.Length > 2)
+            if (!automaticBYPASS)
             {
+                testing.AI_Analyzing = true;
+
+                //string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO E SOLTANTO \"SI\" in caso AFFERMATIVO scrivi solo \"NO\"  in caso NEGATIVO\n\n\n" + testing.ToString();
+
+                string final = "Questa segnalazione contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
                 BotResponse = "";
-                await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
+                _core.CLEARCONTEXT();
+                await _core.TalkWithVanessa(final, true);
 
-            }
-
-
-            if (BotResponse.Equals("NO"))
-            {
-
-                try
-                {
-                    schoolContext.Problems.Add(testing);
-                    schoolContext.SaveChanges();
-
-
-                    await telegramBot.CLEAR(testing.Person.TelegramId);
-                    await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
-                    bool soluzone = false;
-                    if (testing.Solution == "Nessuna soluzione proposta.")
-                    {
-                        await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
-                        testing.Person.TrustPoints += 0.25;
-                    }
-                    else if (testing.Solution != "-NOT SETTED5353453453435375698")
-                    {
-                        await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
-                        testing.Person.TrustPoints += 1;
-                    }
-                    schoolContext.SaveChanges();
-                    await telegramBot.Menu(testing.Person.TelegramId);
-                    telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
-                }
-                catch (Exception e)
-                {
-                    schoolContext.Problems.Remove(testing);
-                    telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
-                    await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", testing.Person.TelegramId);
-                    await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", telegramBot.DavideID);
-
-                }
-            }
-            else
-            {
-                BotResponse = "";
-
-                await _core.TalkWithVanessa("Pensi ancora che la segnalazione contenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
                 while (BotResponse.Length > 2)
                 {
                     BotResponse = "";
@@ -775,8 +731,10 @@ async void AnalizzaCoda()
 
                 }
 
+
                 if (BotResponse.Equals("NO"))
                 {
+
                     try
                     {
                         schoolContext.Problems.Add(testing);
@@ -811,17 +769,86 @@ async void AnalizzaCoda()
                 }
                 else
                 {
-                    await telegramBot.SendMessage("La richiesta non è stata accettata... Hai perso 0.50 trustpoints\nE' risultata inappropriata la segnalazione", testing.Person.TelegramId);
-                    testing.Person.TrustPoints -= 0.50;
-                    schoolContext.SaveChanges();
-                    testing.AI_Analyzing = false;
-                    await telegramBot.Riepilogo(testing.Person.TelegramId, true);
+                    BotResponse = "";
+
+                    await _core.TalkWithVanessa("Pensi ancora che la segnalazione contenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                    while (BotResponse.Length > 2)
+                    {
+                        BotResponse = "";
+                        await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
+
+                    }
+
+                    if (BotResponse.Equals("NO"))
+                    {
+                        try
+                        {
+                            schoolContext.Problems.Add(testing);
+                            schoolContext.SaveChanges();
+
+
+                            await telegramBot.CLEAR(testing.Person.TelegramId);
+                            await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
+                            bool soluzone = false;
+                            if (testing.Solution == "Nessuna soluzione proposta.")
+                            {
+                                await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
+                                testing.Person.TrustPoints += 0.25;
+                            }
+                            else if (testing.Solution != "-NOT SETTED5353453453435375698")
+                            {
+                                await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                                testing.Person.TrustPoints += 1;
+                            }
+                            schoolContext.SaveChanges();
+                            await telegramBot.Menu(testing.Person.TelegramId);
+                            telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
+                        }
+                        catch (Exception e)
+                        {
+                            schoolContext.Problems.Remove(testing);
+                            telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
+                            await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", testing.Person.TelegramId);
+                            await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", telegramBot.DavideID);
+
+                        }
+                    }
+                    else
+                    {
+                        await telegramBot.SendMessage("La richiesta non è stata accettata... Hai perso 0.50 trustpoints\nE' risultata inappropriata la segnalazione", testing.Person.TelegramId);
+                        testing.Person.TrustPoints -= 0.50;
+                        schoolContext.SaveChanges();
+                        testing.AI_Analyzing = false;
+                        await telegramBot.Riepilogo(testing.Person.TelegramId, true);
+
+                    }
+
 
                 }
-
-
             }
-
+            else {
+                try
+                {
+                    testing.AI_Forced = true;
+                    bool soluzone = false;
+                    if (testing.Solution == "Nessuna soluzione proposta.")
+                    {
+                        await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
+                        testing.Person.TrustPoints += 0.25;
+                    }
+                    else if (testing.Solution != "-NOT SETTED5353453453435375698")
+                    {
+                        await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                        testing.Person.TrustPoints += 1;
+                    }
+                    schoolContext.Problems.Add(testing);
+                    schoolContext.SaveChanges();
+                    await telegramBot.CLEAR(testing.Person.TelegramId);
+                    await telegramBot.Menu(testing.Person.TelegramId);
+                    telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
+                }
+                catch (Exception e) { Console.WriteLine(e.Message); }
+            }
             semaphore.Release();
 
         }
