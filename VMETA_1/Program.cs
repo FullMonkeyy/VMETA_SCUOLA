@@ -829,6 +829,7 @@ async void AnalizzaCoda()
             else {
                 try
                 {
+                    await telegramBot.CLEAR(testing.Person.TelegramId);
                     testing.AI_Forced = true;
                     bool soluzone = false;
                     if (testing.Solution == "Nessuna soluzione proposta.")
@@ -843,7 +844,7 @@ async void AnalizzaCoda()
                     }
                     schoolContext.Problems.Add(testing);
                     schoolContext.SaveChanges();
-             
+                    await telegramBot.CLEAR(testing.Person.TelegramId);
                     await telegramBot.Menu(testing.Person.TelegramId);
                     telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
                 }
