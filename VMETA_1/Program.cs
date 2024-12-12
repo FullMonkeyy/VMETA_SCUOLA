@@ -843,7 +843,7 @@ async void AnalizzaCoda()
                     }
                     schoolContext.Problems.Add(testing);
                     schoolContext.SaveChanges();
-                    await telegramBot.CLEAR(testing.Person.TelegramId);
+             
                     await telegramBot.Menu(testing.Person.TelegramId);
                     telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
                 }
