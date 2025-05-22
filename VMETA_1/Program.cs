@@ -17,6 +17,7 @@ using System.Text;
 using System;
 using System.Text.RegularExpressions;
 using Azure.Identity;
+using static System.Net.WebRequestMethods;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -54,8 +55,8 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-string telegramAPI = apirelease;
-bool automaticBYPASS = true;
+string telegramAPI = apidev;
+bool automaticBYPASS = false;
 TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
 Thread RICHIEDI = new Thread(CreaCodiciERequest);
 telegramBot.ProblemaPronto += AddProblem;
@@ -101,6 +102,7 @@ app.UseHttpsRedirection();
 
 //APIS
 //GET
+//string ip=" https://82.58.118.177:7225";
 app.MapGet("/api/Start", () =>
 {
     return Results.Ok("grande");

@@ -84,7 +84,7 @@ function DisplayStudents(Data) {
                 const options = {
                     method: 'DELETE' // Metodo della richiesta
                 };
-                const url = "/api/DeletePerson/" + event.currentTarget.id;
+                const url = "api/DeletePerson/" + event.currentTarget.id;
                 // Effettua la richiesta utilizzando fetch()
                 fetch(url, options)
                     .then(response => {
@@ -173,7 +173,7 @@ async function sendNewPerson() {
     var Pers = new Person(FirstName, LasttName, ClassRoom, "null", Email, PhoneNumber,TelegramCode,isStudent);
 
 
-    url = " api/SendPerson";  
+    url = "api/SendPerson";  
 
     await fetch(url, {
         method: 'POST',
@@ -206,7 +206,7 @@ async function Elimina(nome) {
     const options = {
         method: 'DELETE' // Metodo della richiesta
     };
-    const url = "/api/DeletePerson/" + nome;
+    const url = "api/DeletePerson/" + nome;
     // Effettua la richiesta utilizzando fetch()
     await fetch(url, options)
         .then(response => {

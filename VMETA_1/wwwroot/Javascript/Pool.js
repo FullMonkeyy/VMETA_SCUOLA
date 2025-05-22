@@ -189,7 +189,7 @@ async function Elimina(id) {
     const options = {
         method: 'DELETE' // Metodo della richiesta
     };
-    const url = "/api/DeletePool/" + id;
+    const url = "api/DeletePool/" + id;
     // Effettua la richiesta utilizzando fetch()
     await fetch(url, options)
         .then(response => {

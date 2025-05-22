@@ -13,7 +13,7 @@ document.getElementById("deleteButton").addEventListener("click", async () => {
     const options = {
         method: 'DELETE' // Metodo della richiesta
     };
-    const url = "/api/DeleteAnnouncement/" + Issue.Id;
+    const url = "http://87.15.152.180/api/DeleteAnnouncement/" + Issue.Id;
     // Effettua la richiesta utilizzando fetch()
     await fetch(url, options)
         .then(response => {
@@ -35,7 +35,7 @@ document.getElementById("deleteButton").addEventListener("click", async () => {
 var IssueList = []
 function GetIssue() {
 
-    fetch('api/GetAnnouncements')
+    fetch('http://87.15.152.180api/GetAnnouncements')
         .then(response => response.json())
         .then(data => UpdateDisplay(data))
         //.catch(error => console.error("Unable get the Problemi mannaggia"))
