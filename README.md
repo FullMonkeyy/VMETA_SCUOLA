@@ -5,6 +5,14 @@ I will soon publish another youtube video to show the capabilities of this syste
 For now I'll put here some contextual photos.
 
 
-# Telegram bot interface
+# Telegram bot Main Menu
 
-  ![Screenshot 2024-05-05 215412](https://github.com/FullMonkeyy/MicrosoftBooks-WebApplicationProject/assets/144152021/71b45323-6615-4295-9ca6-d8f28396aa50)
+![Screenshot 2024-05-05 215412](https://github.com/FullMonkeyy/VMETA_SCUOLA/blob/fd757a3cd71cc51039dfc5bd2636d5a001c93249/VMETA_1/Assets/Menu.png)
+
+#Web interface
+
+![Screenshot 2024-05-05 215412](https://github.com/FullMonkeyy/VMETA_SCUOLA/blob/fd757a3cd71cc51039dfc5bd2636d5a001c93249/VMETA_1/Assets/Screenshot%202025-05-22%20222818.png)
+
+
+
+  
