@@ -7,3 +7,4 @@ For now I'll put here some contextual photos.
 
 # Telegram bot interface
 
+  ![Screenshot 2024-05-05 215412](https://github.com/FullMonkeyy/MicrosoftBooks-WebApplicationProject/assets/144152021/71b45323-6615-4295-9ca6-d8f28396aa50)
