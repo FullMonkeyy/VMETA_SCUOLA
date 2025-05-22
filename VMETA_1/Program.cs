@@ -304,6 +304,91 @@ app.MapPost("/api/SendVoice", async (IFormFile file) =>
 
     return Results.Ok(new { filePath });
 });
+app.MapPost("/api/SendMessageALL", async (RequestSendMessage rsm) => {
+
+    List<string> list = new List<string>() {"E","R","1","2","3","4","5"};
+
+    if (rsm == null)
+        return Results.BadRequest("Nessun Request send message");
+    else if (!list.Contains(rsm.Destination))
+        return Results.BadRequest("Destinazione non valida");
+    else if (!(rsm.Title.Length > 0) || !(rsm.Body.Length > 0))
+        return Results.BadRequest("Titolo o Descrizione inconsistente");
+    else
+    {
+       
+
+
+            Letter letternew;
+            switch (rsm.Destination)
+            {
+                case "E":
+                    foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1))
+                    {
+
+                        letternew = new Letter();
+                        letternew.Author = "ADMIN";
+                        letternew.Destination = destination.ToString();
+                 
+                        letternew.People.Add(destination);
+                        letternew.Title = rsm.Title;
+                        letternew.Body = rsm.Body;
+                        letternew.AI_Forced = false;
+
+                        schoolContext.Letters.Add(letternew);
+
+                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                    }
+                    schoolContext.SaveChanges();
+                    break;
+                case "R":
+                    foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1 && x.isJustStudent))
+                    {
+
+                        letternew = new Letter();
+                        letternew.Author = "ADMIN";
+                        letternew.Destination = destination.ToString();
+         
+                        letternew.People.Add(destination);
+                        letternew.Title = rsm.Title;
+                        letternew.Body = rsm.Body;
+                        letternew.AI_Forced = false;
+
+                        schoolContext.Letters.Add(letternew);
+
+                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                    }
+                    schoolContext.SaveChanges();
+                    break;
+                default:
+
+                    foreach (Person destination in schoolContext.Students.Include(x => x.Classroom).Where(x => x.TelegramId != -1 && x.Classroom.Year.Equals(rsm.Destination)))
+                    {
+
+                        letternew = new Letter();
+                        letternew.Author = "ADMIN";
+                    letternew.Destination = destination.ToString();
+
+                        letternew.People.Add(destination);
+                        letternew.Title = rsm.Title;
+                        letternew.Body = rsm.Body;
+                        letternew.AI_Forced = false;
+
+                        schoolContext.Letters.Add(letternew);
+
+                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+
+                    }
+                    schoolContext.SaveChanges();
+
+                    break;
+            }
+
+            return Results.Ok();
+
+    
+    }
+});
 //DELETE
 app.MapDelete("/api/DeletePerson/{id}", async (string id) => {
 
