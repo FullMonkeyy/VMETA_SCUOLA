@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="CSS/Issue.css">
+    <link rel="stylesheet" href="CSS/AnnouncementsCSS.css">
     <title></title>
 </head>
 <body>
@@ -17,25 +17,24 @@
     </div>
     <div id="main">
         <div id="chat">
-            <div id="innerchat"> Issue</div>
+            <div id="innerchat"> Announcements</div>
             <div id="content"></div>
             <div id="problemVisual" style="display:none;">
-                <div id="deleteButton" >CANCELLA</div>
+                <div id="deleteButton">CANCELLA</div>
                 <label class="labelIssue">Title</label>
                 <div class="divIssue" id="ProblemTitle"></div>
                 <label class="labelIssue">Student</label>
-                <div class="divIssue"  id="Person"></div>
-                <label class="labelIssue">Category</label>
-                <div class="divIssue"  id="Category"></div>
+                <div class="divIssue" id="Person"></div>
+              
                 <label class="labelIssue">Description</label>
-                <div class="divIssue"  id="Description"></div>
-                <label class="labelIssue">Solution</label>
-                <div class="divIssue"  id="Solution"></div>
+                <div class="divIssue" id="Description"></div>
+                
             </div>
         </div>
-    </div>    
-    <script src="Javascript\IssueJavascript.js"></script>
+    </div>
     <script src="Javascript\Classes.js"></script>
+    <script src="Javascript\AnnouncementsJavascript.js"></script>
+
     <script>
         document.getElementById("AI").addEventListener("click", () => { window.location.href = "../VanessaChat.html" });
         document.getElementById("TelegramManager").addEventListener("click", () => { window.location.href = "../Telegram.html" });

@@ -1,4 +1,21 @@
 ﻿GetStudents();
+var primo = true;
+document.getElementById("inp_src_cognomi").addEventListener("input", () => {
+
+    if (document.getElementById("inp_src_cognomi").value!="")
+        GetStudentsCognome();
+    else
+        GetStudents();
+
+});
+function GetStudentsCognome() {
+
+    fetch('api/SearchStudentsCognome/' + document.getElementById("inp_src_cognomi").value)
+        .then(response => response.json())
+        .then(data => DisplayStudents(data))
+        .catch(error => console.error("Unable get the students mannaggia"))
+
+}
 function GetStudents() {
 
     fetch('api/GetStudents')
@@ -31,40 +48,71 @@ function addClassrooms(data) {
 function DisplayStudents(Data) {
 
     var Container = document.getElementById("content");
-
+    Container.innerHTML = "";
     for (let i = 0; i < Data.length; i++) {
 
         var divo = document.createElement("div");
         divo.setAttribute("class", "student");
-        divo.innerHTML = "<img src='../CSS/Assets/personicon.png' class='innerIcon'>";
+        var icon = document.createElement("img")
+        icon.setAttribute("class", "innerIcon")
+     
+        divo.id = Data[i]["name"] + "_" + Data[i]["surname"] 
+        if (Data[i]["isJustStudent"]) {
+            icon.src = '../CSS/Assets/personicon.png'
+            divo.id +=" student"
+
+        } else {
+            icon.src = '../CSS/Assets/star.png'
+            divo.id += " rappresentante"
+        };
+
+        divo.appendChild(icon)
         divo.innerHTML += "<span class='innerSpanStudent'>" + Data[i]["surname"] + " " + Data[i]["name"] + " " + Data[i]["classroom"] + "</span>"
+    
+
+        if (!Data[i]["isRegistred"]) divo.style.backgroundColor = "green";
+
         var img = document.createElement("img");
         img.src = "../CSS/Assets/cestino.png"
         img.setAttribute("class", "cestino");
     
         img.id = Data[i]["name"] + " " + Data[i]["surname"] ;
         img.addEventListener("click", (event) => {
-            const options = {
-                method: 'DELETE' // Metodo della richiesta
-            };
-            const url = "/api/DeletePerson/" + event.target.id;
-            // Effettua la richiesta utilizzando fetch()
-            fetch(url, options)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Errore nella richiesta DELETE');
-                    }
-                    console.log('Libro rimosso con successo.');
-                    window.location.reload();
-                    // Puoi gestire la risposta qui se necessario
-                })
-                .catch(error => {
-                    console.error('Si è verificato un errore:', error);
-                });
 
+            if (primo) {
+                primo = false;
+                const options = {
+                    method: 'DELETE' // Metodo della richiesta
+                };
+                const url = "api/DeletePerson/" + event.currentTarget.id;
+                // Effettua la richiesta utilizzando fetch()
+                fetch(url, options)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Errore nella richiesta DELETE');
+                        }
+                        console.log('Libro rimosso con successo.');
+                        window.location.reload();
+                        // Puoi gestire la risposta qui se necessario
+                    })
+                    .catch(error => {
+                        console.error('Si è verificato un errore:', error);
+                    });
+            }
         })
         divo.appendChild(img)
-
+      
+        divo.addEventListener("click", async (ivent) => {
+            if (primo) {
+                primo = false;
+                let total = ivent.currentTarget.id
+                tmp1 = total.split(" ")
+                if (tmp1[1] == "rappresentante")
+                    await ChangeRole(tmp1[tmp1.length-2], false)
+                else await ChangeRole(tmp1[tmp1.length - 2], true)
+                window.location.reload();
+            }
+        })
         Container.appendChild(divo);
 
 
@@ -76,6 +124,29 @@ function DisplayStudents(Data) {
     divo.addEventListener("click",AddStudentProcess)
     Container.appendChild(divo);
 
+
+}
+async function ChangeRole(id, isjuststudent) {
+        var endpoint
+        if (isjuststudent) {
+            endpoint = "api/MakeRappresentante/" + id
+            await fetch(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+        else {
+            endpoint = "api/MakeStudent/" + id
+            await fetch(endpoint, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+    
 
 }
 function AddStudentProcess() {
@@ -102,7 +173,7 @@ async function sendNewPerson() {
     var Pers = new Person(FirstName, LasttName, ClassRoom, "null", Email, PhoneNumber,TelegramCode,isStudent);
 
 
-    url = " api/SendPerson";  
+    url = "api/SendPerson";  
 
     await fetch(url, {
         method: 'POST',
@@ -135,9 +206,9 @@ async function Elimina(nome) {
     const options = {
         method: 'DELETE' // Metodo della richiesta
     };
-    const url = "/api/DeletePerson/" + nome;
+    const url = "api/DeletePerson/" + nome;
     // Effettua la richiesta utilizzando fetch()
-    fetch(url, options)
+    await fetch(url, options)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Errore nella richiesta DELETE');

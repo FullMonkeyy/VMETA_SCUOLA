@@ -9,7 +9,7 @@
         public DateTime Birthday { get; set; }
         public DateTime DataInserimento { get; set; }
         public Classroom Classroom { get; set; }
-        public List<Problem>? Problem { get; set; }
+        public List<Problem> Problem { get; set; }
         public bool WeeklyAnnouncement{ get; set; }
         public List<Announcement> Announcements { get; set; }
         public List<Letter> Letters { get; set; }
@@ -48,8 +48,17 @@
         }
         public override string ToString()
         {
+            if(Surname!=null)
             return Name + " " + Surname;
+            else return Name;
         }
+        /*public override bool Equals(object? obj)
+        {
+            if (obj == null || !(obj is Person)) return false;
+            Person other = obj as Person;
+            if (Name.Equals(other.Name) && Surname.Equals(other.Surname)) return true;
+            else return false;
+        }*/
 
     }
 }

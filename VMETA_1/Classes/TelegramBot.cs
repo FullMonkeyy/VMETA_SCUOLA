@@ -22,6 +22,7 @@ using System.Linq;
 using System.Security.Cryptography.Xml;
 using Microsoft.Win32.SafeHandles;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.RegularExpressions;
 
 namespace VMETA_1.Classes
 {
@@ -30,10 +31,10 @@ namespace VMETA_1.Classes
         public long DavideID{get;set;}
         string BotToken;
         SchoolContext schoolContext;
-        TelegramBotClient botClient;
+        public TelegramBotClient botClient { get; set; }
         ReceiverOptions receiverOptions;
         CancellationTokenSource cts;
-        List<RegisterRequest> registerRequests;
+
         List<Person> topten;
         Thread Classifica;
         Dictionary<long,Problem> WritingProblems;
@@ -46,7 +47,9 @@ namespace VMETA_1.Classes
         SemaphoreSlim mtx;
         Queue<Problem> ProblemiQueue;
         Thread QualityChecker;
-        
+        int NumMaxEmails;
+        Thread Restarter;
+
         public delegate void DelegatoEvento(object sender,Problem p);
         public event DelegatoEvento ProblemaPronto;
 
@@ -60,6 +63,12 @@ namespace VMETA_1.Classes
         public event DelegatoEventoReStart RiavvioNecessario;
 
 
+        public delegate void DelegatoEventoRegisterRequest(object sender, RegisterRequest p, string classe, long tmptelegram);
+        public event DelegatoEventoRegisterRequest RichiestaDaCompletare;
+
+        public delegate void DelegatoRICHIESTE_TOTALI(object sender);
+        public event DelegatoRICHIESTE_TOTALI TOTAL_REQUEST;
+
         public TelegramBot(string api,SchoolContext sc)
         {
             mtx = new SemaphoreSlim(1, 4);
@@ -67,14 +76,16 @@ namespace VMETA_1.Classes
             QualityChecker = new Thread(CheckChatQuality);
             QualityChecker.IsBackground = true;
             QualityChecker.Start();
-            registerRequests = new List<RegisterRequest>();
+
             WritingProblems= new Dictionary<long,Problem>();
             WritingLetterss = new Dictionary<long, Letter>();
             WritingAnnoucement = new Dictionary<long, Announcement>();
             StateCounter = new Dictionary<long, int>();
             active = true;
+
             botClient = new TelegramBotClient(api);
-            cts = new CancellationTokenSource();
+            //botClient.Timeout = new TimeSpan(0, 5, 0);
+                cts = new CancellationTokenSource();
             schoolContext = sc;
             DavideID = 1140272456;
             topten = new List<Person>();
@@ -94,14 +105,13 @@ namespace VMETA_1.Classes
                      pollingErrorHandler: HandlePollingErrorAsync,                     
                      receiverOptions: receiverOptions,
                      cancellationToken: cts.Token
-          );
-      
-           
-           
+            );
+            SendMessage("BOT AVVIATO", DavideID);
+            NumMaxEmails = 150;
+            Restarter = new Thread(TimeReset);
         }
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Telegram.Bot.Types.Update update, CancellationToken cancellationToken)
-        {
-
+        {           
 
             if (active)
             {
@@ -109,7 +119,8 @@ namespace VMETA_1.Classes
                 {
                     if (update.Message.Text != null)
                     {
-                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-()=";
+                        //Messaggi scritti
+                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-_()=@";
                         if (update.Message.Text.All(c =>lettereAccentate.Contains(c)))
                         {
                             string text_message = update.Message.Text;
@@ -124,14 +135,15 @@ namespace VMETA_1.Classes
 
                                 Person tmp33 = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
 
-                                if (tmp33==null) {
+                                if (tmp33 == null)
+                                {
                                     await CLEAR(id);
                                     string[] tmp = text_message.Split(':');
                                     if (tmp.Length == 2)
                                     {
                                         string tmpcodice = tmp[1];
-
-                                        foreach (RegisterRequest r in registerRequests)
+                                        List<RegisterRequest> tmr = GestioneFile.ReadXMLRequestRegister();
+                                        foreach (RegisterRequest r in tmr)
                                         {
 
                                             if (r.Code.Equals(tmpcodice))
@@ -139,6 +151,7 @@ namespace VMETA_1.Classes
 
                                                 Person p = schoolContext.Students.FirstOrDefault(x => x.Name.Equals(r.Name) && x.Surname.Equals(r.Surname));
                                                 p.TelegramId = id;
+
                                                 r.isRegistred = true;
                                                 schoolContext.SaveChanges();
                                                 convalidazione = true;
@@ -153,10 +166,12 @@ namespace VMETA_1.Classes
                                         if (convalidazione)
                                         {
 
-                                        RegisterRequest p = registerRequests.Find(x => x.isRegistred);
-                                        registerRequests.Remove(p);
-                                        await SendMessage($"Convalidazione riuscita!\nBenvenuto {p.Name}!\nSpero che ti potrò tornare utile!", id);
-                                        await Menu(id);
+                                            RegisterRequest p = tmr.Find(x => x.isRegistred && x.Code.Equals(tmpcodice));
+                                            tmr.Remove(p);
+                                            GestioneFile.WriteXMLRequestRegister(tmr);
+                                            await SendMessage($"Convalidazione riuscita!\nBenvenuto {p.Name}!\nSpero che ti potrò tornare utile!", id);
+                                            await Menu(id);
+
 
                                         }
                                         else
@@ -175,22 +190,136 @@ namespace VMETA_1.Classes
                                 {
                                     await SendMessage($"Ciao {tmp33.Name} sei già registrato.", id);
                                 }
-                            }                            
+                            }
                             else if (text_message.StartsWith("/start"))
                             {
                                 await CLEAR(id);
                                 await SendMessage("Vanessa Meta avviata", id);
-                                await SendMessage("--- Versione 0.1 BetaRelease ---", id, false);
+                                await SendMessage("--- Versione 0.3  BetaRelease ---", id, false);
 
                                 if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                                 {
-                                    
+
                                     await Menu(id);
                                 }
                                 else
                                 {
                                     await SendMessage("Salve, si prega di autenticarsi contattando l'amministratore di sistema.", id);
                                 }
+                            }
+                            else if (text_message.StartsWith("/email:"))
+                            {/*
+                                int numtmp = schoolContext.Students.Count();
+                                if (numtmp < NumMaxEmails)
+                                {
+
+                                    Person tmp33 = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(id));
+
+                                    if (tmp33 == null)
+                                    {
+                                        await CLEAR(id);
+                                        string[] tmp = text_message.Split(':');
+                                        if (tmp.Length == 2)
+                                        {
+                                            string emailRegex = @"^s-([a-zA-Z0-9]{2,})\.([a-zA-Z0-9]{2,})@isiskeynes\.it$";
+                                            string tmpemail = tmp[1].Trim();
+                                            if (Regex.IsMatch(tmpemail, emailRegex))
+                                            {
+
+                                                List<string> lines = GestioneFile.GetCSVLines("nomi_cognomi_classi.csv");
+                                                List<string> linesemail = GestioneFile.GetCSVLines("Email.csv");
+                                                string[] attributes, attributes2;
+                                                string name = "";
+                                                string surname = "";
+                                                string classe = "";
+
+                                                foreach (string line in linesemail)
+                                                {
+
+                                                    attributes = line.Split(",");
+
+
+
+                                                    if (attributes.Count() == 3)
+                                                    {
+                                                        if (attributes[2].Equals(tmpemail))
+                                                        {
+                                                            name = attributes[0];
+                                                            surname = attributes[1];
+
+                                                            foreach (string lineclasse in lines)
+                                                            {
+                                                                attributes2 = lineclasse.Split(";");
+                                                                if (attributes2.Count() == 3)
+                                                                {
+
+
+
+                                                                    if (attributes2[0].ToLower().Contains(surname.ToLower()) && attributes2[1].ToLower().Contains(name.ToLower()))
+                                                                    {
+
+                                                                        classe = attributes2[2];
+                                                                        break;
+                                                                    }
+
+                                                                }
+                                                            }
+                                                            break;
+                                                        }
+                                                    }
+
+                                                }
+
+                                                if (name != "" && surname != "" && classe != "")
+                                                {
+
+                                                    name = char.ToUpper(name[0]) + name.Substring(1).ToLower();
+                                                    surname = char.ToUpper(surname[0]) + surname.Substring(1).ToLower();
+                                                    await SendMessage("Ok, ho preparato una richiesta di registrazione", id);
+
+                                                    RichiestaDaCompletare(this, new RegisterRequest(name, surname, "NOT SETTED", tmpemail), classe, id);
+                                                }
+                                                else
+                                                    await SendMessage("Non sono riuscita a recuperare le tue informazioni attraverso l'email...", id);
+
+
+
+
+
+
+                                            }
+                                            else
+                                            {
+                                                await SendMessage("Formattazione dell'email sbagliata.", id);
+                                            }
+
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        await SendMessage($"Ciao {tmp33.Name}, sei già registrato.", id);
+                                    }
+                                }
+                                else
+                                {
+                                    await SendMessage("Numero massimo di registrazioni raggiunte.", id);
+
+                                }*/
+                                await SendMessage("Questa funzionalità non è più disponibile.", id);
+                            }
+                            else if (text_message.Equals("/REQUESTALL:Beatrice Amore Della Mia Vita") && id.Equals(DavideID)) {
+
+                                TOTAL_REQUEST(this);
+                                await CLEAR(id);
+                                await SendMessage("REQUEST ALL COMPLETATO.\n\nTutti gli studenti sono stati contattati!\n\nBen fatto.", DavideID);
+                                await Menu(DavideID);
+                            }
+                            else if (text_message.Equals("/turn_off") && id.Equals(DavideID))
+                            {
+
+                                active = false;
+                                await SendMessage("BOT DISATTIVATO", DavideID);
                             }
                             else if (schoolContext.Students.ToList().Exists(x => x.TelegramId.Equals(id)))
                             {
@@ -208,7 +337,7 @@ namespace VMETA_1.Classes
                                             if (text_message.Contains("<") && text_message.Contains(">"))
                                             {
 
-                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrvi il titolo.", id);
+                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrivi il titolo.", id);
 
                                             }
                                             else if (text_message.Length > 50)
@@ -244,18 +373,18 @@ namespace VMETA_1.Classes
                                             if (text_message.Contains("<") && text_message.Contains(">"))
                                             {
 
-                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrvi il titolo.", id);
+                                                await SendMessage("Ci hai provato ahahahahhaah.\nTogli subito le parentesi angolari (<, >).\n\nRiscrivi il titolo.", id);
 
                                             }
                                             else if (text_message.Length > 600)
                                             {
-                                                await SendMessage("La descrizione non può superare la lunghezza di 600 caratteri\nNumero caratteri inseriti: " + text_message.Length + "\n\nRiscrvi il titolo.", id);
+                                                await SendMessage("La descrizione non può superare la lunghezza di 600 caratteri\nNumero caratteri inseriti: " + text_message.Length + "\n\nRiscrivi il titolo.", id);
                                             }
                                             else
                                             {
                                                 problem.Description = text_message;
-                                                if(problem.Solution == "-NOT SETTED5353453453435375698")
-                                                await ProponiSoluzioni(id);
+                                                if (problem.Solution == "-NOT SETTED5353453453435375698")
+                                                    await ProponiSoluzioni(id);
                                             }
 
 
@@ -340,26 +469,22 @@ namespace VMETA_1.Classes
                                                 else
                                                 {
                                                     WritingAnnoucement[id].Description = text_message;
-
-
-
                                                 }
                                             }
-
                                             if (WritingAnnoucement[id].Description != null && WritingAnnoucement[id].Title != null)
                                             {
                                                 //Inviare il riepilogo
                                                 await RiepilogoAnnuncio(id);
+
                                             }
                                         }
                                     }
 
-                                }                               
-                                if(!writing)
+                                }
+                                if (!writing)
                                 {
                                     await CLEAR(id);
                                     await Menu(id);
-
                                 }
 
 
@@ -376,7 +501,7 @@ namespace VMETA_1.Classes
                             if (update.Message != null)
                             {
                                 long id = update.Message.Chat.Id;
-                                await SendMessage("E' stato utilizzato un set di caratteri non consentito (ma che lingua parli bro).\nUnica punteggiatura ritenuta accettabile: ./:,;!?€$'-()=\nNon si possono inserire emoji\nRiprova a scrivere il messaggio correttamente facendo attenzione ai caratteri usati", id);
+                                await SendMessage("E' stato utilizzato un set di caratteri non consentito (ma che lingua parli bro).\nUnica punteggiatura ritenuta accettabile: ./:,;!?€$'-_()=@\nNon si possono inserire emoji\nRiprova a scrivere il messaggio correttamente facendo attenzione ai caratteri usati", id);
                                 ADDTOCHAT(id, update.Message.MessageId);
                             }
 
@@ -387,6 +512,7 @@ namespace VMETA_1.Classes
                 }
                 else
                 {
+                    //PULSANTI
                     if (update.CallbackQuery != null)
                     {
                     
@@ -409,7 +535,7 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "true";
                                     newproblem.Person = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
-                                    newproblem.TrustPoints = newproblem.Person.TrustPoints;
+                                    newproblem.TrustPoints = (double)newproblem.Person.TrustPoints;
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
                                         if (!(bool)WritingLetterss[FromId].AI_Analyzing)
@@ -448,7 +574,7 @@ namespace VMETA_1.Classes
                                     newproblem.isStudente = "false";
                                     newproblem.Person = schoolContext.Students.FirstOrDefault(x => x.TelegramId.Equals(FromId));
                                     newproblem.Classroom = schoolContext.Students.Include(x => x.Classroom).FirstOrDefault(x => x.TelegramId.Equals(FromId)).Classroom;
-                                    newproblem.TrustPoints = newproblem.Person.TrustPoints;
+                                    newproblem.TrustPoints = (double)newproblem.Person.TrustPoints;
                                     newproblem.TrustPoints += 2;
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
@@ -546,15 +672,15 @@ namespace VMETA_1.Classes
                                         ADDTOCHAT(FromId, m.MessageId);
                                     }
 
-                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                    var mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    var mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
                                     break;
                                 case "callback_data_8":
 
                                     Person pet = await schoolContext.Students.Include(x=> x.Announcements).FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
-                                    bool procced = true;
+                                    bool procced = false;
                                     DateTime tmp = DateTime.Now;
                                     
 
@@ -628,12 +754,12 @@ namespace VMETA_1.Classes
                                     //write to another classroom
 
                                     pet = await schoolContext.Students.Include(x => x.Letters).FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));                                    
-                                    procced = true;
+                                    procced = false;
                                     tmp = DateTime.Now;
 
                                    
 
-                                    if (pet.Letters.TrueForAll(x => (tmp - x.InsertionDate).Days > 7))
+                                    if (pet.Letters.TrueForAll(x => (tmp - x.InsertionDate).Days > 1))
                                         procced = true;
                                     else
                                     {
@@ -702,8 +828,8 @@ namespace VMETA_1.Classes
                                         m = await botClient.SendTextMessageAsync(FromId, "Seleziona la classe", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, m.MessageId);
 
-                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
-                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
+                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
                                     }
@@ -869,9 +995,11 @@ namespace VMETA_1.Classes
                                     {
                                         WritingProblems[FromId].AI_Forced = true;
                                         schoolContext.Problems.Add(WritingProblems[FromId]);
+                                        WritingProblems[FromId].Person.TrustPoints += 0.5;
                                         schoolContext.SaveChanges();
                                         DeleteWritingProblem(FromId);
-                                        await SendMessage("Bypass effettuato con successo. Segnalazione completata.\nIn caso di abuso, si procederà con il ban.", FromId);
+                                        await SendMessage("Bypass effettuato con successo. Segnalazione completata.\nIn caso di abuso, si procederà con il ban.\nHai compensato con +0.5 truspoints", FromId);
+                                       
                                         await Menu(FromId);
                                     }
                                     else
@@ -903,7 +1031,7 @@ namespace VMETA_1.Classes
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
 
                                     break;
@@ -911,7 +1039,7 @@ namespace VMETA_1.Classes
 
                                     if (WritingLetterss.ContainsKey(FromId))
                                     {
-                                        await SendMessage("Riscrvi il nuovo messaggio", FromId);
+                                        await SendMessage("Riscrivi il nuovo messaggio", FromId);
                                         WritingLetterss[FromId].Body = null;
                                     }
                                     else
@@ -957,9 +1085,19 @@ namespace VMETA_1.Classes
                                     break;
                                 case "callback_data_29":
 
-                                    await SendMessage("Messaggio inviato al centro AI, nonappena sarà elaborato riceverai una notifica.", FromId);
-                                    LetteraPronta(this, WritingLetterss[FromId]);
-                                    await Menu(FromId);
+                                    if (WritingLetterss.ContainsKey(FromId))
+                                    {
+                                        await SendMessage("Messaggio inviato al centro AI, non appena sarà elaborato riceverai una notifica.", FromId);
+
+                                        LetteraPronta(this, WritingLetterss[FromId]);
+                                        await Menu(FromId);
+                                    }
+                                    else
+                                    {
+                                        await SendMessage("Procedura scaduta", FromId);
+                                        await Riepilogo(FromId, false);
+
+                                    }
 
                                     break;
                                 case "callback_data_30":
@@ -1004,7 +1142,7 @@ namespace VMETA_1.Classes
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
                                     break;
                                 case "callback_data_32":
@@ -1030,7 +1168,7 @@ namespace VMETA_1.Classes
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                    mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                     ADDTOCHAT(FromId, mees.MessageId);
 
                                     break;
@@ -1128,12 +1266,12 @@ namespace VMETA_1.Classes
 
                                    keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
 
-                                   mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                   mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, premi il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                    ADDTOCHAT(FromId, mees.MessageId);
                                     break;
                                 case "callback_data_40":
 
-                                    string totaltopstr = "CLASSIFICA TOP 10";
+                                    string totaltopstr = "-- CLASSIFICA TOP 10 --";
                                     classificaMtx.WaitOne();
                                     int counterposition = 1;
                                     foreach (Person persona in topten)
@@ -1143,6 +1281,7 @@ namespace VMETA_1.Classes
                                         counterposition++;
                                     }
                                     classificaMtx.ReleaseMutex();
+                                    totaltopstr += "\n\nLa classifica si aggiorna alle 8:00 del mattino";
                                     await SendMessage(totaltopstr, FromId);
 
                                     keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
@@ -1194,22 +1333,25 @@ namespace VMETA_1.Classes
 
                                         foreach (Person stu in studenti)
                                         {
-                                            if (stu.TelegramId.Equals(FromId))
+                                            if (stu.TelegramId.Equals(FromId) || stu.TelegramId.Equals(-1))
                                                 continue;
                                                
                                             callback = "ID_STUDENTWRITING_" + stu.Id;
                                             InlineKeyboardButton bottone = InlineKeyboardButton.WithCallbackData(stu.ToString(), callback);
+                                            if (_c_counter > 1)
+                                            {
+                                                bottoni.Add(bottoniRiga);
+                                                bottoniRiga = new List<InlineKeyboardButton>();
+                                            }
                                             bottoniRiga.Add(bottone);
-                                            if (_c_counter <= 2)
+                                            if (_c_counter <= 1)
                                             {
                                                 _c_counter++;
 
                                             }
                                             else
                                             {
-                                                _c_counter = 0;
-                                                bottoni.Add(bottoniRiga);
-                                                bottoniRiga = new List<InlineKeyboardButton>();
+                                                _c_counter = 0;                                               
                                             }
                                         }
                                         if (_c_counter >= 0)
@@ -1222,8 +1364,8 @@ namespace VMETA_1.Classes
                                         m = await botClient.SendTextMessageAsync(FromId, "Seleziona lo studente con cui parlare", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, m.MessageId);
 
-                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
-                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante al disotto per tornare al menu,", replyMarkup: keyboard);
+                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
+                                        mees = await botClient.SendTextMessageAsync(FromId, "Questo è tutto, schiaccia il pulsante qui sotto per tornare al menu,", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
 
@@ -1270,7 +1412,7 @@ namespace VMETA_1.Classes
                                             m = await botClient.SendTextMessageAsync(FromId, descp, replyMarkup: keyboard);
                                             ADDTOCHAT(FromId, m.MessageId);
 
-                                            keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                            keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
                                             mees = await botClient.SendTextMessageAsync(FromId, "Premi questo pulsante per tornare al menù.", replyMarkup: keyboard);
                                             ADDTOCHAT(FromId, mees.MessageId);
                                         }
@@ -1310,7 +1452,7 @@ namespace VMETA_1.Classes
                                         letter.AI_Analyzing = false;
                                         per = await schoolContext.Students.FirstOrDefaultAsync(x => x.TelegramId.Equals(FromId));
                                         letter.Author = per.ToString();
-                                        letter.TrustPoints = per.TrustPoints;
+                                        letter.TrustPoints = (double)per.TrustPoints;
                                         letter.People.Add(per);
                                         if (WritingLetterss.ContainsKey(FromId))
                                         {
@@ -1338,7 +1480,7 @@ namespace VMETA_1.Classes
                                         Person pe = await schoolContext.Students.FirstOrDefaultAsync(x => x.Id.Equals(studentId));
                                         if (per != null)
                                         {
-                                            await SendMessage($"Cosa vuoi che scriva a {pe.ToString()}?\n\nDigita pure al disotto di questo messaggio ciò che vuole comunicare. Farò da intermediaria.\nSi ricordano le normali norme di rispetto reciproco.", per.TelegramId);
+                                            await SendMessage($"Cosa vuoi che scriva a {pe.ToString()}?\n\nDigita pure qui sotto di questo messaggio ciò che vuole comunicare. Farò da intermediaria.\nSi ricordano le normali norme di rispetto reciproco.", per.TelegramId);
 
                                         }
                                         else
@@ -1356,7 +1498,7 @@ namespace VMETA_1.Classes
                                         Letter letter = await schoolContext.Letters.Include(x => x.People).FirstOrDefaultAsync(y => y.Id.Equals(classId));
                                         await SendMessage(letter.ToString(),FromId);
 
-                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna in dietro", "callback_data_23"), } });
+                                        keyboard = new InlineKeyboardMarkup(new[] { new[] { InlineKeyboardButton.WithCallbackData("Torna indietro", "callback_data_23"), } });
                                         mees = await botClient.SendTextMessageAsync(FromId, "Premi questo pulsante per tornare al menù.", replyMarkup: keyboard);
                                         ADDTOCHAT(FromId, mees.MessageId);
 
@@ -1421,12 +1563,40 @@ namespace VMETA_1.Classes
             }
             else
             {
-                EliminateALLmessages();
                 if (update.Message != null)
                 {
-                    long id = update.Message.Chat.Id;
-                    await SendMessage("Attualmente non sono disponibile. ", id);
+                    if (update.Message.Text != null)
+                    {
+                        string lettereAccentate = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzàèìòùáéíóúâêîôûäëïöüçñ ./:,;!?€$'-_()=@";
+                        if (update.Message.Text.All(c => lettereAccentate.Contains(c)))
+                        {
+
+                            string text_message = update.Message.Text;
+                            long id = update.Message.Chat.Id;
+
+                            ADDTOCHAT(id, update.Message.MessageId);
+
+                            bool convalidazione = false;
+                            bool writing = false;
+
+                            if (text_message.Equals("/turn_on") && id.Equals(DavideID))
+                            {
+                                active = true;
+                                await SendMessage("BOT AVVIATO", DavideID);
+                            }
+                            else
+                            {
+                                //EliminateALLmessages();
+                                if (update.Message != null)
+                                {                                    
+                                    await SendMessage("Attualmente non sono disponibile. ", id);
+                                }
+                            }
+
+                        }
+                    }
                 }
+                
              
             }
         }
@@ -1445,8 +1615,8 @@ namespace VMETA_1.Classes
                                                cancellationToken: cancellationToken);
 
             RiavvioNecessario(this);
-
-            return null;
+            Restarter.Start();
+            return Task.CompletedTask;
         }
         public async Task Riepilogo(long id,bool force)
         {
@@ -1580,16 +1750,19 @@ namespace VMETA_1.Classes
                 ADDTOCHAT(id, mes.MessageId);
             }
         }
-        public bool RegisterNewAccountRequest(string name,string surname,string code)
+        public bool RegisterNewAccountRequest(string name, string surname, string code, string email)
         {
-            if (!registerRequests.Exists(x => x.Code.Equals(code)))
+            List<RegisterRequest> tmr = GestioneFile.ReadXMLRequestRegister();
+            if (!tmr.Exists(x => x.Code.Equals(code)))
             {
-                registerRequests.Add(new RegisterRequest(name, surname, code));
+                tmr.Add(new RegisterRequest(name, surname, code, email));
+                GestioneFile.WriteXMLRequestRegister(tmr);
                 return true;
             }
             else return false;
-          
+
         }
+
         public async Task SendMessage(string text, long id){
 
             if (id != -1)
@@ -1601,7 +1774,11 @@ namespace VMETA_1.Classes
                           text: text
                           );
                     ADDTOCHAT(id, mes.MessageId);
-                }catch(Exception e) { }
+                }catch(Exception e) {
+
+                    Console.WriteLine("Nel SendMessage [text,id]:\n"+e.Message);
+
+                }
             }
         }
         public async Task SendMessage(string text, long id,bool isStoredInChat)
@@ -1618,7 +1795,7 @@ namespace VMETA_1.Classes
                     if(isStoredInChat)
                     ADDTOCHAT(id, mes.MessageId);
                 }
-                catch (Exception e) { }
+                catch (Exception e) { Console.WriteLine("Eccezione nella catch del SendMessage method"); }
             }
         }
         public async Task MandaPulsantiCategorie(long id)
@@ -1669,6 +1846,7 @@ namespace VMETA_1.Classes
         public void RiavviaClient(string token)
         {
             active = false;
+            cts.Cancel();
             botClient = new TelegramBotClient(token);
             
             cts = new CancellationTokenSource();
@@ -1685,7 +1863,8 @@ namespace VMETA_1.Classes
                      cancellationToken: cts.Token
           );
 
-
+           SendMessage("BOT RIAVVIATO - Attivare recezione", DavideID);
+          
         }
         public async Task CLEAR(long id)
         {
@@ -1707,7 +1886,7 @@ namespace VMETA_1.Classes
                             }
                             catch (Exception e)
                             {
-                                //Boh robe
+                                Console.WriteLine("Nel clear method");
                             }
                         }
 
@@ -1898,6 +2077,7 @@ namespace VMETA_1.Classes
         }
         void TrustPointsRank()
         {
+            CreateRank();
             while (true)
             {
                 // Ottieni l'orario corrente
@@ -1937,6 +2117,12 @@ namespace VMETA_1.Classes
             }
             classificaMtx.ReleaseMutex();
 
+        }
+        void TimeReset() {
+
+            Thread.Sleep(60000);
+            active = true;
+            SendMessage("BOT ATTIVATO", DavideID);
         }
     }  
 }

@@ -34,7 +34,7 @@
             Secret = secret;
             Category = category;
             isStudente = is_student;
-            TrustPoints = Person.TrustPoints;
+            TrustPoints = (double)Person.TrustPoints;
             DataInserimento = DateTime.Now;
             AI_Forced = aI_Forced;  
         }

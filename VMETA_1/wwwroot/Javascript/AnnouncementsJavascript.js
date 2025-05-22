@@ -5,7 +5,7 @@ document.getElementById("deleteButton").addEventListener("click", async () => {
     var Issue;
 
     for (let i = 0; i < IssueList.length; i++) {
-        if (IssueList[i].id == idIssue) {
+        if (IssueList[i].divid == idIssue) {
             Issue = IssueList[i];
             break;
         }
@@ -13,7 +13,7 @@ document.getElementById("deleteButton").addEventListener("click", async () => {
     const options = {
         method: 'DELETE' // Metodo della richiesta
     };
-    const url = "api/DeleteIssue/" + Issue.trueid;
+    const url = "http://87.15.152.180/api/DeleteAnnouncement/" + Issue.Id;
     // Effettua la richiesta utilizzando fetch()
     await fetch(url, options)
         .then(response => {
@@ -32,24 +32,26 @@ document.getElementById("deleteButton").addEventListener("click", async () => {
 
 
 });
-var IssueList=[]
+var IssueList = []
 function GetIssue() {
 
-    fetch('api/GetProblems')
+    fetch('http://87.15.152.180api/GetAnnouncements')
         .then(response => response.json())
         .then(data => UpdateDisplay(data))
-        .catch(error => console.error("Unable get the Problemi mannaggia"))
+        //.catch(error => console.error("Unable get the Problemi mannaggia"))
 
 }
 
 
 function UpdateDisplay(data) {
 
-   
 
-    for (let i=0; i < data.length; i++) {
 
-        IssueList.push(new Problem(data[i]["classroom"], data[i]["description"], data[i]["person"], data[i]["secret"], data[i]["solution"], data[i]["title"], data[i]["category"], data[i]["aiForced"] ,"div" + i,data[i]["id"]))
+    for (let i = 0; i < data.length; i++) {
+
+        var ann = new Announcement(data[i]["id"], data[i]["title"], data[i]["description"], data[i]["insertionDate"], data[i]["announcerId"], data[i]["announcerName"], data[i]["classroomYEAR"],"div"+i)
+
+        IssueList.push(ann)
 
 
         var divo = document.createElement("div");
@@ -62,36 +64,26 @@ function UpdateDisplay(data) {
         Title.setAttribute("class", "ProblemCardTITLE");
         var Description = document.createElement("div");
         Description.setAttribute("class", "ProblemCardDESCRIPTION");
-        var category = document.createElement("div");
-        category.setAttribute("class", "ProblemCardDESCRIPTION")
-        category.innerHTML = data[i]["category"];
+     
 
         Title.innerHTML = data[i]["title"];
-
-        if (data[i]["isStudent"] == "true")
-            Description.innerHTML = data[i]["person"] + " " + data[i]["classroom"];
-        else
-            Description.innerHTML = "Problema della classe " + data[i]["classroom"];
+    
+        Description.innerHTML = data[i]["announcerName"] + " del " + data[i]["classroomYEAR"]+"° anno";
+ 
 
         var bottomcard = document.createElement("div");
 
         bottomcard.setAttribute("class", "BottomCard");
         bottomcard.appendChild(Description)
-        bottomcard.appendChild(category)
+    
 
-
-        if (data[i]["aiForced"]) {
-            divo.style.backgroundColor = "yellow";
-          
-        }
-                
         divo.appendChild(Title);
-        divo.appendChild(bottomcard);     
+        divo.appendChild(bottomcard);
 
         divo.addEventListener("click", (target) => {
 
             document.getElementById("content").style.display = "none";
-            document.getElementById("problemVisual").style.display="block"
+            document.getElementById("problemVisual").style.display = "block"
             DisplayProblem(target.currentTarget.id);
 
         })
@@ -108,30 +100,27 @@ function DisplayProblem(id) {
 
     idIssue = id;
     for (let i = 0; i < IssueList.length; i++) {
-        if (IssueList[i].id == id) {
+        if (IssueList[i].divid == id) {
             issueee = IssueList[i];
             break;
         }
     }
 
-    document.getElementById("ProblemTitle").innerHTML = issueee.title;
+    document.getElementById("ProblemTitle").innerHTML = issueee.Title;
 
-    if (issueee.secret=="false")
-        document.getElementById("Person").innerHTML = issueee.person;
-    else document.getElementById("Person").innerHTML = "Rappresentante della classe " + issueee.classroom;
+ 
+    document.getElementById("Person").innerHTML = issueee.AnnouncerName + " del " + issueee.ClassroomYEAR+"° anno";
+    
 
-    document.getElementById("Category").innerHTML = issueee.category;
-
-
-    document.getElementById("Description").innerHTML = issueee.description;
+    document.getElementById("Description").innerHTML = issueee.Description;
 
 
-    document.getElementById("Solution").innerHTML = issueee.solution;
+
     var butt;
     if (issueee.aiforced) {
         butt = document.createElement("button")
         butt.innerHTML = "Conferma ByPass"
-   
+
         butt.addEventListener("click", () => {
             AIModify();
         });
@@ -139,12 +128,12 @@ function DisplayProblem(id) {
         document.getElementById("problemVisual").appendChild(butt);
         document.getElementById("problemVisual").style.backgroundColor = "orange";
     }
-    
+
 }
 async function AIModify() {
 
     id = issueee.trueid;
-    await fetch('api/ModificaAI/'+id, {
+    await fetch('api/ModificaAI/' + id, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="CSS/Telegram.css">
+    <title></title>
+</head>
+<body>
+    <div id="option">
+        <div class="selection" id="AI"><div class="innerselection">AI CHAT</div></div>
+        <div class="selection" id="DatabaseProblemi"><div class="innerselection">Issue</div></div>
+        <div class="selection" id="TelegramManager"><div class="innerselection">Telegram</div> </div>
+        <div class="selection" id="DatabasePersone"><div class="innerselection">People</div></div>
+        <div class="selection" id="DatabaseClassrooms"><div class="innerselection">Classrooms</div></div>
+        <div class="selection" id="DatabaseAnnounce"><div class="innerselection">Annouce</div></div>
+        <div class="selection" id="DatabaseSondaggi"><div class="innerselection">Pools</div></div>
+    </div>
+    <div id="main">
+        <div id="chat">
+            <div id="innerchat"> Telegram Manager</div>
+            <div id="content">
+
+                <div id="MainMessageDiv">
+                    <div class="innerMessageDiv">
+                        <label>Title</label>
+                        <input id="messagetitle" type="text" />
+
+                    </div>
+                    <div class="innerMessageDiv">
+                        <label>Message</label>
+
+                        <textarea id="message" name="Text1" rows="5"></textarea>
+
+                    </div>
+                    <div id="MessageDiv">
+                        <div class="innerMessageDiv">
+                            <label>Everyone</label>
+                            <input id="radioEveryone" type="radio" name="destinationRadio" class="radiobutton" />
+                        </div>
+                        <div class="innerMessageDiv">
+                            <label>Solo rappresentanti</label>
+                            <input id="radioRappresentanti" type="radio" name="destinationRadio" checked="true" class="radiobutton" />
+                        </div>
+                        <div class="innerMessageDiv">
+                            <label>Annata</label>
+                            <div>
+                                <input id="radioAnnate" type="radio" name="destinationRadio" class="radiobutton" />
+                                <select id="selectionannate" disabled="true">
+                                    <option value="1">Primo anno</option>
+                                    <option value="2">Secondo anno</option>
+                                    <option value="3">Terzo anno</option>
+                                    <option value="4">Quarto anno</option>
+                                    <option value="5">Quinto anno</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="sendmessage"> Manda messaggio</button>
+                    </div>
+
+                </div>
+                <button id="ResettaClient">RIAVVIA IL CLIENT</button>
+            </div>
+        </div>
+        <script src="Javascript\Classes.js"></script>
+        <script src="Javascript\TelegramJavascript.js"></script>
+
+        <script>
+            document.getElementById("AI").addEventListener("click", () => { window.location.href = "../VanessaChat.html" });
+            document.getElementById("TelegramManager").addEventListener("click", () => { window.location.href = "../Telegram.html" });
+            document.getElementById("DatabasePersone").addEventListener("click", () => { window.location.href = "../People.html" });
+            document.getElementById("DatabaseProblemi").addEventListener("click", () => { window.location.href = "../Issue.html" });
+            document.getElementById("DatabaseSondaggi").addEventListener("click", () => { window.location.href = "../Pool.html" });
+            document.getElementById("DatabaseAnnounce").addEventListener("click", () => { window.location.href = "../Announcements.html" });
+            document.getElementById("radioEveryone").addEventListener("click", () => {
+
+                document.getElementById("selectionannate").disabled = true;
+
+            });
+            document.getElementById("radioRappresentanti").addEventListener("click", () => {
+
+                document.getElementById("selectionannate").disabled = true;
+
+            });
+            document.getElementById("radioAnnate").addEventListener("click", () => {
+
+                document.getElementById("selectionannate").disabled = false;
+
+            });
+        </script>
+</body>
+</html>

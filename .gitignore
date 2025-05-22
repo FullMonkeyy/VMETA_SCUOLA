@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/VMETA_1/TelegramChats.xml
+/VMETA_1/RequestRegister.xml
+/VMETA_1/TelegramChats.xml
+/VMETA_1/PeopleModels.xml

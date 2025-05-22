@@ -68,3 +68,28 @@ class Pool {
 
 
 }
+class Announcement {
+
+    constructor(id, titolo, description, insertiondate, announcerid, announcername, classroomyear,divid) {
+
+        this.Id = id;
+        this.Title = titolo;
+        this.Description = description;
+        this.insertionDate = insertiondate;
+        this.AnnouncerId = announcerid;
+        this.AnnouncerName = announcername;
+        this.ClassroomYEAR = classroomyear;
+        this.divid = divid
+
+    }
+}
+class RequestSendMessage {
+
+    constructor(title, body, destination) {
+        this.Title = title;
+        this.Body = body;
+        this.Destination=destination
+    }
+
+
+}

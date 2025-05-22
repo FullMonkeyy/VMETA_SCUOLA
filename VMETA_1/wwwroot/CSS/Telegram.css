@@ -1,0 +1,193 @@
+﻿body {
+    height: 1000px;
+    display: flex;
+    flex-wrap: wrap;
+    background-color: black;
+    font-family: Miofont;
+}
+
+@font-face {
+    font-family: Miofont;
+    src: url('Fonts/good times rg.otf')
+}
+
+#option {
+    background-color: #190342;
+    height: 98%;
+    width: 20.5%;
+    border-radius: 10px;
+    position: absolute;
+}
+
+.selection {
+    width: 390px;
+    height: 10%;
+    background-color: purple;
+    position: relative;
+    margin: auto;
+    border-radius: 10px;
+    margin-top: 40px;
+    transform: scale(100%);
+    transition: transform 0.5s;
+    box-shadow: 0px 5px 20px 5px;
+    font-size: 30px;
+    font-family: Miofont;
+    cursor: pointer;
+}
+
+    .selection:hover {
+        transform: scale(90%);
+        transition: transform 0.5s;
+    }
+
+.innerselection {
+    color: white;
+    width: fit-content;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+
+#main {
+    height: 98%;
+    width: 78.2%;
+    background-color: #190342;
+    position: absolute;
+    right: 10px;
+    border-radius: 10px;
+}
+
+#chat {
+    width: 1400px;
+    height: 900px;
+    position: relative;
+    
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 10px;
+    background-color: #602770;
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 2px 2px 20px 23px #8a3aa1;
+}
+
+#innerchat {
+    width: fit-content;
+    font-size: 50px;
+    position: relative;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    font-family: Miofont;
+
+}
+
+#content {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: 1300px;
+    height: 700px;
+    scrollbar-arrow-color: blue;
+    overflow: auto;
+    font-size: 30px;
+    font-family: Miofont;
+    color: white;
+    display: flex;
+    flex-direction: column;
+
+
+}
+
+.ProblemCard {
+    width: 1150px;
+    height: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    margin-bottom:30px;
+    padding: 35px;
+    background-color: #321cb0;
+    border-radius: 20px;
+    box-shadow: 0px 5px 20px 5px black;
+    transform: scale(100%);
+    transition: transform 0.5s;
+}
+.ProblemCardTITLE {
+    background-color: purple;
+    height: fit-content;
+    font-size: 30px;
+    border-radius: 20px;
+    padding: 35px;
+}
+.ProblemCardDESCRIPTION {
+    margin-top: 25px;
+    background-color: #602770;
+    border-radius: 16px;
+    padding: 15px;
+    font-size: 20px;
+    width: fit-content;
+   
+ 
+}
+.ProblemCard:hover {
+    transform: scale(95%);
+    transition: transform 0.5s;
+}
+.BottomCard{
+    
+    display:flex;
+    gap:10px;
+}
+
+#MessageDiv{
+
+    display:flex;
+    flex-wrap:wrap;
+
+    padding:20px;
+    gap:35px;
+
+}
+#MainMessageDiv {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    background-color: #321cb0;
+    padding: 20px;
+    gap: 35px;
+    border-radius: 16px;
+}
+.innerMessageDiv{
+
+    display:flex;
+    flex-wrap:wrap;
+    flex-direction:column;
+    gap:10px;
+    font-size:20px;
+
+}
+.radiobutton{
+
+    transform:scale(200%);
+    width:fit-content;
+
+}
+#sendmessage{
+
+    font-size:25px;
+    border-radius:10px;
+    margin-left:100px;
+
+}
+#ResettaClient {
+
+    font-size:30pt;
+    padding:10px;
+    margin-top:20PX;
+
+}

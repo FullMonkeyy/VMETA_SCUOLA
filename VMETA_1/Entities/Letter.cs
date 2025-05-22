@@ -25,11 +25,20 @@
         {
             try
             {
-                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da {People[1].ToString()} per {People[0].ToString()}";
+                if (!Author.Equals("ADMIN"))
+                {
+                    if (Author != null && Destination != null)
+                        return $"Messaggio:\n{Body}\n\n-Messaggio inviato da {Author} per {Destination}\n\nSpedito il {InsertionDate.ToLongDateString()}";
+                    else if (Destination != null)
+                        return $"Messaggio:\n{Body}\n\n-Messaggio inviato da {Author} per {Destination} ";
+                    else
+                        return $"Messaggio:\n{Body}";
+                }
+                return $"---NOTIFICA DI SISTEMA---\n\n{Title}\n\n{Body}";
             }
             catch (Exception ex)
             {
-                return $"Messaggio originale\n{Title}\n\nMessaggio rielaborato\n{Body}\n\n-Messaggio inviato da {People[1].ToString()} ";
+                return $"Messaggio:\n{Body}\n\nSpedito il {InsertionDate.ToLongDateString()}";
             }
         }
 

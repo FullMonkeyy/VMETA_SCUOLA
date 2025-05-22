@@ -316,3 +316,13 @@
     border-radius:10px;
 
 }
+#inp_src_cognomi{
+
+    height:30px;
+    position:relative;
+    left:25px;
+    bottom:10px;
+    width:260px;
+    font-size:25px;
+
+}

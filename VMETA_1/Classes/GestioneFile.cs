@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.Serialization;
 using System.Net;
+using VMETA_1.Models;
 
 namespace VMETA_1.Classes
 {
@@ -16,12 +17,14 @@ namespace VMETA_1.Classes
         static public string path1 = "C:\\Users\\irond\\source\\repos\\Progetto_Vanessa_Gemini_GUI\\Progetto_Vanessa_Gemini_GUI\\bin\\Debug\\net8.0-windows\\InizializeXMLConversation.xml";
         static public string path2 = @"C:\Users\irond\source\repos\Progetto_Vanessa_Gemini_GUI\Progetto_Vanessa_Gemini_GUI\bin\Debug\net8.0-windows\CronologiaMessaggiVanessa.xml";
         static public string path3 = @"bin\Debug\net8.0\CronologiaMessaggiVanessa.xml";
+        static public string _requestPath = @"RequestRegister.xml";
         static string _chatsPath = "TelegramChats.xml";
 
-        static string ftpAddress = "ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";  // URL FTP di destinazione
+        //static string ftpAddress = "ftp://ftp.scapellatodavide.altervista.org/TELEGRAMCHAT.xml";  // URL FTP di destinazione
         static string ftpUsername = "scapellatodavide";  // Nome utente FTP
         static string ftpPassword = "ft9pAyc9B5Zd";  // Password FTP
 
+        static Mutex _mtxRequest = new Mutex();
 
         static public string Read(string path)
         {
@@ -182,19 +185,19 @@ namespace VMETA_1.Classes
             }
             catch (IOException e)
             {
-            
+
                 Console.WriteLine("Non sono riuscito a salvare le chat telegram");
 
             }
             catch (Exception e)
             {
- 
+
                 Console.WriteLine(e.Message);
             }
         }
         static public Dictionary<long, Dictionary<DateTime, int>> ReadXMLTelegramChats()
         {
-            Dictionary<long, Dictionary<DateTime, int>> dct = new Dictionary<long, Dictionary<DateTime,int>>();
+            Dictionary<long, Dictionary<DateTime, int>> dct = new Dictionary<long, Dictionary<DateTime, int>>();
 
             if (File.Exists(@_chatsPath))
             {
@@ -204,7 +207,7 @@ namespace VMETA_1.Classes
 
                     DataContractSerializer serializer = new DataContractSerializer(typeof(Dictionary<long, Dictionary<DateTime, int>>));
                     dct = (Dictionary<long, Dictionary<DateTime, int>>)serializer.ReadObject(reader);
-                    reader.Close();                  
+                    reader.Close();
 
                 }
                 catch (IOException e)
@@ -219,18 +222,123 @@ namespace VMETA_1.Classes
                     reader.Close();
                 }
             }
-            
+
 
             return dct;
 
         }
+        static public void WriteXMLRequestRegister(List<RegisterRequest> listaRichieste)
+        {
+            StreamWriter sw = null;
+            try
+            {
 
-        static public void WriteFTP(string filePath)
+                _mtxRequest.WaitOne();
+                sw = new StreamWriter(_requestPath, false);
+                XmlSerializer xmls = new XmlSerializer(typeof(List<RegisterRequest>));
+                xmls.Serialize(sw, listaRichieste);
+                _mtxRequest.ReleaseMutex();
+                sw.Close();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                if (sw != null)
+                    sw.Close();
+            }
+
+
+        }
+        static public List<RegisterRequest> ReadXMLRequestRegister()
+        {
+            List<RegisterRequest> tmp = new List<RegisterRequest>();
+            StreamReader sw = null;
+            try
+            {
+
+                _mtxRequest.WaitOne();
+                if (File.Exists(_requestPath))
+                {
+                    sw = new StreamReader(_requestPath);
+                    XmlSerializer xmls = new XmlSerializer(typeof(List<RegisterRequest>));
+                    tmp.AddRange((List<RegisterRequest>)xmls.Deserialize(sw));
+                    _mtxRequest.ReleaseMutex();
+                    sw.Close();
+                }
+                else
+                {
+                    WriteXMLRequestRegister(tmp);
+                }
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                if (sw != null)
+                    sw.Close();
+
+            }
+
+            return tmp;
+        }
+        static public void WriteXMLPersonModelRegister(List<PersonModel> pmodel) {
+
+
+            StreamWriter sw = null;
+            try
+            {
+
+
+                sw = new StreamWriter("PeopleModels.xml", false);
+                XmlSerializer xmls = new XmlSerializer(typeof(List<PersonModel>));
+                xmls.Serialize(sw, pmodel);
+
+                sw.Close();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                if (sw != null)
+                    sw.Close();
+            }
+
+
+
+        }
+
+        static public List<string> GetCSVLines(string filePath)
+        {
+
+            List<string> lines = new List<string>();
+            try
+            {
+                // Leggi tutte le righe del file
+                lines = File.ReadAllLines(filePath).ToList();
+
+
+            }
+            catch (IOException ex)
+            {
+                Console.WriteLine($"Errore nella lettura del file: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Errore: {ex.Message}");
+            }
+
+            return lines;
+
+        }
+
+
+        static public void WriteFTP(string filePath,string urlDestination)
         {
             try
             {
                 // Creazione richiesta FTP
-                FtpWebRequest request = (FtpWebRequest)WebRequest.Create(ftpAddress);
+                FtpWebRequest request = (FtpWebRequest)WebRequest.Create(urlDestination);
                 request.Method = WebRequestMethods.Ftp.UploadFile;
 
                 // Impostazione credenziali FTP

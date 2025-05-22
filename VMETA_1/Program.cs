@@ -13,6 +13,11 @@ using System.Xml;
 using VMETA_1.Classes;
 using VMETA_1.Entities;
 using VMETA_1.Models;
+using System.Text;
+using System;
+using System.Text.RegularExpressions;
+using Azure.Identity;
+using static System.Net.WebRequestMethods;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,8 +26,15 @@ bool BUSY_VANESSA = false;
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+List<RegisterRequest> TelegramCodes = new List<RegisterRequest>();
+
+EmailServiceVMeta emailServiceVMeta = new EmailServiceVMeta();
+//emailServiceVMeta.SendEmail("OGGETTO LETTERA3", "TITOLO DELLA LETTERA", $"Ciao Davide,<br> questo è il tuo personale codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:code</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br>VMeta ti permetterà di:<br><br>- Segnalare a noi rappresentanti problematiche di qualsiasi tipo<br>- Rispondere ai nostri sondaggi (su gite, assemblee corsi etc)<br>- Scrivere annunci<br>- E molto altro<br><br>VMeta è da considerarsi uno strumento per lo studente perciò deve essere utilizzato responsabilmente.<br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto d'identità</b>.<br><br>Cordialmente,<br><br>-VMeta","s-scapellato.davide@isiskeynes.it");
 VanessaCore _core = null;
 SchoolContext schoolContext = new SchoolContext();
+
+
 Queue<Problem> _problem_queue = new Queue<Problem>();
 Queue<Letter> _letter_queue = new Queue<Letter>();
 Queue<Announcement> _announcement_queue = new Queue<Announcement>();
@@ -30,7 +42,7 @@ Queue<Announcement> _announcement_queue = new Queue<Announcement>();
 //TelegramBot telegramBot = new TelegramBot("7162917894:AAF54AXNjF0fauZW3vgUsxBbuYvaLogR5HM",schoolContext);
 //VANESSA
 
-GestioneFile.WriteFTP("TelegramChats.xml");
+//GestioneFile.WriteFTP("TelegramChats.xml");
 
 
 Mutex mutex = new Mutex();
@@ -43,19 +55,21 @@ Semaphore semaphore = new Semaphore(1, 2000);
 
 string apidev = "7093295868:AAFba7c8l2qvdsfBTaP4LnxGPIN1HMuaGnM";
 string apirelease = "7315698486:AAH-stu67C5SRi6FP8fJdW1Y1j6HIS-GpzU";
-
-TelegramBot telegramBot = new TelegramBot(apirelease, schoolContext);
+string telegramAPI = apidev;
+bool automaticBYPASS = false;
+TelegramBot telegramBot = new TelegramBot(telegramAPI, schoolContext);
+Thread RICHIEDI = new Thread(CreaCodiciERequest);
 telegramBot.ProblemaPronto += AddProblem;
 telegramBot.RiavvioNecessario += ReStart;
 telegramBot.LetteraPronta += AddLetter;
 telegramBot.AnnuncioPronta += AddAnnouncement;
+telegramBot.RichiestaDaCompletare += NewPerson;
+telegramBot.TOTAL_REQUEST += RequestAll;
 IResponseStreamer<ChatResponseStream?> Streamer = null;
 CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 Thread AiProblemSender = new Thread(AnalizzaCoda);
 Thread AILetterSender = new Thread(AnalizzaCodaLettere);
 Thread AIAnnouncementSender = new Thread(AnalizzaCodaAnnuncio);
-
-
 
 string BotResponse = "";
 Streamer = new ActionResponseStreamer<ChatResponseStream>((stream) =>
@@ -88,9 +102,10 @@ app.UseHttpsRedirection();
 
 //APIS
 //GET
+//string ip=" https://82.58.118.177:7225";
 app.MapGet("/api/Start", () =>
 {
-     return Results.Ok("grande");
+    return Results.Ok("grande");
 });
 app.MapGet("/api/GetResponse", async () => {
 
@@ -139,7 +154,7 @@ app.MapGet("/api/GetProblems", async () =>
     {
         models.Add(new ProblemModel(p));
     }
-    models.Sort((x,y)=> x.Person.CompareTo(y.Person));
+    models.OrderByDescending(x => x.TP);
     return Results.Ok(models);
 
 });
@@ -156,6 +171,35 @@ app.MapGet("/api/GetPools", async () =>
     return Results.Ok(models);
 
 });
+app.MapGet("/api/GetAnnouncements", async () =>
+{
+
+    List<AnnouncementModel> models = new List<AnnouncementModel>();
+
+    foreach (Announcement p in schoolContext.Announcements.Include(x => x.Announcer))
+    {
+        models.Add(new AnnouncementModel(p));
+    }
+
+    return Results.Ok(models);
+
+});
+app.MapGet("/api/SearchStudentsCognome/{cognome}", async (string cognome) => {
+
+    List<PersonModel> tmp = new List<PersonModel>();
+    foreach (Person p in schoolContext.Students.Include(x => x.Classroom).Where(x => x.Surname.ToLower().StartsWith(cognome.ToLower())))
+    {
+        tmp.Add(new PersonModel(p));
+    }
+
+    return tmp;
+
+});
+app.MapGet("/api/RestartBotTelegram", () => {
+
+    telegramBot.RiavviaClient(telegramAPI);
+    return Results.Ok();
+});
 //POST
 app.MapPost("/api/SendMessage", async (JsonObject json) =>
 {
@@ -164,13 +208,13 @@ app.MapPost("/api/SendMessage", async (JsonObject json) =>
     Message? message = JsonConvert.DeserializeObject<Message>(jasonstring);
 
 
-    await _core.TalkWithVanessa(message.Content);
+    await _core.TalkWithVanessa(message.Content, true);
 
     /////////////////////////////////////////
     return Results.Accepted("id libro:");
 
 });
-app.MapPost("/api/SendPerson", (JsonObject json) =>
+app.MapPost("/api/SendPerson", async (JsonObject json) =>
 {
     //string jasonstring = json.ToString();
     var ja = json.ToArray();
@@ -184,6 +228,7 @@ app.MapPost("/api/SendPerson", (JsonObject json) =>
     Classroom tmp = schoolContext.Classrooms.FirstOrDefault(x => x.Year.Equals(year) && x.Section.Equals(sect) && x.Specialization.Equals(spec));
     string name = "cazzo";
 
+    bool TCODEALREADYExists = false;
 
     if (tmp != null)
     {
@@ -192,23 +237,60 @@ app.MapPost("/api/SendPerson", (JsonObject json) =>
         string Cognome = ja[1].Value.ToString();
         string email = ja[4].Value.ToString();
         string Phonw = ja[5].Value.ToString();
-        string TelegramCODE = ja[6].Value.ToString();
-        bool check;
-        bool.TryParse(ja[7].Value.ToString(), out check);
-        if (Name.Length > 0)
+        string TelegramCODE = "";
+        TelegramCodes = GestioneFile.ReadXMLRequestRegister();
+        if (ja[6].Value.ToString().Length >= 3)
         {
-            Person p = new Person(Name, Cognome, DateTime.MinValue, tmp, -1, email, Phonw, check);
-
-            if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE))
+            if (TelegramCodes.Exists(x => x.Code.Equals(ja[6].Value.ToString())))
             {
-
-                schoolContext.Students.Add(p);
-                schoolContext.SaveChanges();
-                return Results.Accepted("Operation succed");
+                TCODEALREADYExists = true;
             }
-            else return Results.BadRequest("Codice telegram già preso");
-
+            else TelegramCODE = ja[6].Value.ToString();
         }
+        else
+        {
+
+            string tmpcode;
+            do
+            {
+                tmpcode = GenerateRandomString(8);
+                tmpcode = tmpcode.ToUpper();
+
+            } while (TelegramCodes.Exists(x => x.Code.Equals(ja[6].Value.ToString())));
+            TelegramCODE = tmpcode;
+
+            if (!(email.Length > 5 && email.Contains("@") && email.Contains("isiskeynes.it")))
+            {
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", $"s-{Cognome.ToLower().Replace(" ", string.Empty)}.{Name.ToLower().Replace(" ", string.Empty)}@isiskeynes.it");
+            }
+            else
+            {
+                emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b>/code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
+
+            }
+        }
+
+        if (!TCODEALREADYExists)
+        {
+
+            bool check;
+            bool.TryParse(ja[7].Value.ToString(), out check);
+            if (Name.Length > 0)
+            {
+                Person p = new Person(Name, Cognome, DateTime.MinValue, tmp, -1, email, Phonw, check);
+
+                if (telegramBot.RegisterNewAccountRequest(Name, Cognome, TelegramCODE, email))
+                {
+
+                    schoolContext.Students.Add(p);
+                    schoolContext.SaveChanges();
+                    return Results.Accepted("Operation succed");
+                }
+                else return Results.BadRequest("Codice telegram già preso");
+
+            }
+        }
+        else Results.BadRequest("Telegram code già esistente");
 
     }
     /////////////////////////////////////////
@@ -255,6 +337,7 @@ app.MapPost("/api/SendPool", async (JsonObject json) => {
 
             }
             schoolContext.SaveChanges();
+            Console.WriteLine("Ho creato il pool: " + newpool.Titolo);
         }
         else
         {
@@ -272,6 +355,7 @@ app.MapPost("/api/SendPool", async (JsonObject json) => {
 
             }
             schoolContext.SaveChanges();
+            Console.WriteLine("Ho creato il pool: " + newpool.Titolo);
         }
 
 
@@ -306,7 +390,7 @@ app.MapPost("/api/SendVoice", async (IFormFile file) =>
 });
 app.MapPost("/api/SendMessageALL", async (RequestSendMessage rsm) => {
 
-    List<string> list = new List<string>() {"E","R","1","2","3","4","5"};
+    List<string> list = new List<string>() { "E", "R", "1", "2", "3", "4", "5" };
 
     if (rsm == null)
         return Results.BadRequest("Nessun Request send message");
@@ -316,77 +400,77 @@ app.MapPost("/api/SendMessageALL", async (RequestSendMessage rsm) => {
         return Results.BadRequest("Titolo o Descrizione inconsistente");
     else
     {
-       
 
 
-            Letter letternew;
-            switch (rsm.Destination)
-            {
-                case "E":
-                    foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1))
-                    {
 
-                        letternew = new Letter();
-                        letternew.Author = "ADMIN";
-                        letternew.Destination = destination.ToString();
-                 
-                        letternew.People.Add(destination);
-                        letternew.Title = rsm.Title;
-                        letternew.Body = rsm.Body;
-                        letternew.AI_Forced = false;
+        Letter letternew;
+        switch (rsm.Destination)
+        {
+            case "E":
+                foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1))
+                {
 
-                        schoolContext.Letters.Add(letternew);
-
-                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
-                    }
-                    schoolContext.SaveChanges();
-                    break;
-                case "R":
-                    foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1 && x.isJustStudent))
-                    {
-
-                        letternew = new Letter();
-                        letternew.Author = "ADMIN";
-                        letternew.Destination = destination.ToString();
-         
-                        letternew.People.Add(destination);
-                        letternew.Title = rsm.Title;
-                        letternew.Body = rsm.Body;
-                        letternew.AI_Forced = false;
-
-                        schoolContext.Letters.Add(letternew);
-
-                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
-                    }
-                    schoolContext.SaveChanges();
-                    break;
-                default:
-
-                    foreach (Person destination in schoolContext.Students.Include(x => x.Classroom).Where(x => x.TelegramId != -1 && x.Classroom.Year.Equals(rsm.Destination)))
-                    {
-
-                        letternew = new Letter();
-                        letternew.Author = "ADMIN";
+                    letternew = new Letter();
+                    letternew.Author = "ADMIN";
                     letternew.Destination = destination.ToString();
 
-                        letternew.People.Add(destination);
-                        letternew.Title = rsm.Title;
-                        letternew.Body = rsm.Body;
-                        letternew.AI_Forced = false;
+                    letternew.People.Add(destination);
+                    letternew.Title = rsm.Title;
+                    letternew.Body = rsm.Body;
+                    letternew.AI_Forced = false;
 
-                        schoolContext.Letters.Add(letternew);
+                    schoolContext.Letters.Add(letternew);
 
-                        await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                    await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                }
+                schoolContext.SaveChanges();
+                break;
+            case "R":
+                foreach (Person destination in schoolContext.Students.Where(x => x.TelegramId != -1 && x.isJustStudent))
+                {
 
-                    }
-                    schoolContext.SaveChanges();
+                    letternew = new Letter();
+                    letternew.Author = "ADMIN";
+                    letternew.Destination = destination.ToString();
 
-                    break;
-            }
+                    letternew.People.Add(destination);
+                    letternew.Title = rsm.Title;
+                    letternew.Body = rsm.Body;
+                    letternew.AI_Forced = false;
 
-            return Results.Ok();
+                    schoolContext.Letters.Add(letternew);
 
-    
+                    await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+                }
+                schoolContext.SaveChanges();
+                break;
+            default:
+
+                foreach (Person destination in schoolContext.Students.Include(x => x.Classroom).Where(x => x.TelegramId != -1 && x.Classroom.Year.Equals(rsm.Destination)))
+                {
+
+                    letternew = new Letter();
+                    letternew.Author = "ADMIN";
+                    letternew.Destination = destination.ToString();
+
+                    letternew.People.Add(destination);
+                    letternew.Title = rsm.Title;
+                    letternew.Body = rsm.Body;
+                    letternew.AI_Forced = false;
+
+                    schoolContext.Letters.Add(letternew);
+
+                    await telegramBot.SendMessage($"MESSAGGIO ADMIN\n\n {letternew.Title}\n\n{letternew.Body}", destination.TelegramId);
+
+                }
+                schoolContext.SaveChanges();
+
+                break;
+        }
+
+        return Results.Ok();
+
+
     }
 });
 //DELETE
@@ -404,10 +488,16 @@ app.MapDelete("/api/DeletePerson/{id}", async (string id) => {
     if (todelete != null)
     {
 
-        todelete.Problem = null;
+
         todelete.Classroom = null;
 
         schoolContext.Students.Remove(todelete);
+        if (todelete.Problem != null)
+            schoolContext.Problems.RemoveRange(todelete.Problem);
+        if (todelete.Announcements != null)
+            schoolContext.Announcements.RemoveRange(todelete.Announcements);
+        if (todelete.Letters != null)
+            schoolContext.Letters.RemoveRange(todelete.Letters);
         schoolContext.SaveChanges();
         return Results.Accepted("Tolto");
 
@@ -444,13 +534,26 @@ app.MapDelete("/api/DeletePool/{id}", async (int id) =>
     {
 
 
-        schoolContext.Decisions.RemoveRange(todelete.Votes);
 
-
-        schoolContext.SaveChanges();
 
 
         schoolContext.Pools.Remove(todelete);
+        schoolContext.SaveChanges();
+        Console.WriteLine("Ho eliminato il sondaggio: " + todelete.Titolo);
+        return Results.Accepted("Tolto");
+
+    }
+    else return Results.BadRequest("Non esiste il tizio in questione");
+
+});
+app.MapDelete("/api/DeleteAnnouncement/{id}", async (int id) =>
+{
+    Announcement todelete = await schoolContext.Announcements.FirstOrDefaultAsync(x => x.id.Equals(id));
+    if (todelete != null)
+    {
+
+
+        schoolContext.Announcements.Remove(todelete);
         schoolContext.SaveChanges();
         return Results.Accepted("Tolto");
 
@@ -459,11 +562,11 @@ app.MapDelete("/api/DeletePool/{id}", async (int id) =>
 
 });
 //PUT
-app.MapPut("/api/ModificaAI/{id}", async (int id) => { 
+app.MapPut("/api/ModificaAI/{id}", async (int id) => {
 
-    Problem problem = schoolContext.Problems.FirstOrDefault(x=> x.Id.Equals(id));
+    Problem problem = schoolContext.Problems.FirstOrDefault(x => x.Id.Equals(id));
 
-    if (problem!=null)
+    if (problem != null)
     {
         problem.AI_Forced = false;
         schoolContext.SaveChanges();
@@ -471,6 +574,45 @@ app.MapPut("/api/ModificaAI/{id}", async (int id) => {
     }
     else return Results.BadRequest();
 
+
+});
+app.MapPut("/api/MakeRappresentante/{id}", async (string id) =>
+{
+    List<string> tmp = id.ToLower().Split("_").ToList();
+    if (tmp.Count >= 2)
+    {
+        Person p = await schoolContext.Students.FirstOrDefaultAsync(x => x.Name.ToLower().Contains(tmp[0]) && x.Surname.Contains(tmp[1]));
+
+        if (p != null)
+        {
+
+            p.isJustStudent = false;
+            schoolContext.SaveChanges();
+            return Results.Ok();
+
+        }
+        else return Results.BadRequest();
+    }
+    else return Results.BadRequest();
+});
+app.MapPut("/api/MakeStudent/{id}", async (string id) =>
+{
+    List<string> tmp = id.ToLower().Split("_").ToList();
+    if (tmp.Count >= 2)
+    {
+        Person p = await schoolContext.Students.FirstOrDefaultAsync(x => x.Name.ToLower().Contains(tmp[0]) && x.Surname.Contains(tmp[1]));
+
+        if (p != null)
+        {
+
+            p.isJustStudent = true;
+            schoolContext.SaveChanges();
+            return Results.Ok();
+
+        }
+        else return Results.BadRequest();
+    }
+    else return Results.BadRequest();
 
 });
 
@@ -490,78 +632,77 @@ async Task NotificaNuovoPool(string title, Person p)
 
 }
 
-
 void AddProblem(object sendere, Problem p)
 {
     mutex2.WaitOne();
- 
-    _problem_queue.Enqueue(p);
-    Queue<Problem> queuetmp = new Queue<Problem>(_problem_queue);
-    _problem_queue.OrderByDescending(x => x.TrustPoints);
 
-    for (int i = 0; i < queuetmp.Count; i++) {
+    _problem_queue.Enqueue(p);  
 
-        try
-        {
-            if (queuetmp.ToList()[i]!= _problem_queue.ToList()[i])
-            {
-            _problem_queue.ToList()[i].TrustPoints += 0.25;
-            }
-        }
-        catch (Exception e) { }
-
-    }
-  
     mutex2.ReleaseMutex();
 }
 void AddLetter(object sender, Letter l)
 {
     mutex1.WaitOne();
     _letter_queue.Enqueue(l);
-    Queue<Letter> queuetmp = new Queue<Letter>(_letter_queue);
-    _letter_queue.OrderByDescending(x => x.TrustPoints);
-
-    for (int i = 0; i < queuetmp.Count; i++)
-    {
-        try
-        {
-            if (queuetmp.ToList()[i] != _letter_queue.ToList()[i])
-            {
-                _letter_queue.ToList()[i].TrustPoints += 0.25;
-            }
-        }
-        catch(Exception e) { }
-
-    }
-
+  
     mutex1.ReleaseMutex();
 }
-void AddAnnouncement(object sender, Announcement a) {
-    
+void AddAnnouncement(object sender, Announcement a)
+{
+
     mutex3.WaitOne();
-    _announcement_queue.Enqueue(a);
-    Queue<Announcement> queuetmp = new Queue<Announcement>(_announcement_queue);
-    _announcement_queue.OrderByDescending(x => x.TrustPoints);
-
-    for (int i = 0; i < queuetmp.Count; i++)
-    {
-
-        if (queuetmp.ToList()[i] != _announcement_queue.ToList()[i])
-        {
-            _announcement_queue.ToList()[i].TrustPoints += 0.25;
-        }
-
-    }
+    _announcement_queue.Enqueue(a);  
 
     mutex3.ReleaseMutex();
 
 }
+
 void ReStart(object sender)
 {
 
-    telegramBot.RiavviaClient("7502523717:AAHuuedxcjwGwIarfZUrMCEfsQbsyXHPwbY");
+    telegramBot.RiavviaClient(telegramAPI);
 
 }
+void NewPerson(object sender, RegisterRequest RR, string classe, long tmptelegram)
+{
+    if (classe.Length >= 3)
+    {
+        string tmpcode;
+        string TelegramCODE;
+        string Name = RR.Name;
+        string year = classe[0] + "";
+        string sect = classe[1] + "";
+        string spec = classe.Substring(2);
+        Classroom tmp = schoolContext.Classrooms.FirstOrDefault(x => x.Year.Equals(year) && x.Section.Equals(sect) && x.Specialization.Equals(spec));
+        if (tmp != null)
+        {
+            do
+            {
+                tmpcode = GenerateRandomString(8);
+                tmpcode = tmpcode.ToUpper();
+
+            } while (TelegramCodes.Exists(x => x.Code.Equals(tmpcode)));
+            TelegramCODE = tmpcode;
+            telegramBot.SendMessage("Ok, ti arriverà presto una email con il codice da inserire", tmptelegram);
+            emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza", $"Ciao {Name},<br> è stato richiesto un codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{tmpcode}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", RR.Email);
+
+            Person p = new Person(Name, RR.Surname, DateTime.MinValue, tmp, -1, RR.Email, "nessuno", false);
+            if (telegramBot.RegisterNewAccountRequest(Name, RR.Surname, TelegramCODE, RR.Email))
+            {
+
+                schoolContext.Students.Add(p);
+                schoolContext.SaveChanges();
+            }
+        }
+        Console.WriteLine("Nuovo tizio inserito");
+    }
+}
+void RequestAll(object sender)
+{
+
+    RICHIEDI.Start();
+
+};
 
 async void AnalizzaCoda()
 {
@@ -573,64 +714,49 @@ async void AnalizzaCoda()
 
             semaphore.WaitOne();
             Problem testing = _problem_queue.Dequeue();
-            testing.AI_Analyzing = true;
 
-            string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
-            BotResponse = "";
-
-            await _core.TalkWithVanessa(final);
-
-            if (BotResponse.Equals("NO"))
+            if (!automaticBYPASS)
             {
+                testing.AI_Analyzing = true;
 
-                try
-                {
-                    schoolContext.Problems.Add(testing);
-                    schoolContext.SaveChanges();
-                   
+                //string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO E SOLTANTO \"SI\" in caso AFFERMATIVO scrivi solo \"NO\"  in caso NEGATIVO\n\n\n" + testing.ToString();
 
-                    await telegramBot.CLEAR(testing.Person.TelegramId);
-                    await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
-                    bool soluzone = false;
-                    if(testing.Solution== "Nessuna soluzione proposta.")
-                    {
-                        await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
-                        testing.Person.TrustPoints += 0.25;
-                    }
-                    else if (testing.Solution != "-NOT SETTED5353453453435375698")
-                    {
-                       await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
-                        testing.Person.TrustPoints += 1;
-                    }
-
-                    await telegramBot.Menu(testing.Person.TelegramId);
-                    telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
-                }
-                catch (Exception e) {
-                    schoolContext.Problems.Remove(testing);
-                    telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
-                    await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", testing.Person.TelegramId);
-                    await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", telegramBot.DavideID);
-
-                }
-            }
-            else
-            {
+                string final = "Questa segnalazione contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
                 BotResponse = "";
+                _core.CLEARCONTEXT();
+                await _core.TalkWithVanessa(final, true);
 
-                await _core.TalkWithVanessa("Pensi ancora che la segnalazione contenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                while (BotResponse.Length > 2)
+                {
+                    BotResponse = "";
+                    await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
+
+                }
 
 
                 if (BotResponse.Equals("NO"))
                 {
+
                     try
                     {
                         schoolContext.Problems.Add(testing);
                         schoolContext.SaveChanges();
+
+
                         await telegramBot.CLEAR(testing.Person.TelegramId);
                         await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
-
-
+                        bool soluzone = false;
+                        if (testing.Solution == "Nessuna soluzione proposta.")
+                        {
+                            await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
+                            testing.Person.TrustPoints += 0.25;
+                        }
+                        else if (testing.Solution != "-NOT SETTED5353453453435375698")
+                        {
+                            await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                            testing.Person.TrustPoints += 1;
+                        }
+                        schoolContext.SaveChanges();
                         await telegramBot.Menu(testing.Person.TelegramId);
                         telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
                     }
@@ -646,16 +772,86 @@ async void AnalizzaCoda()
                 else
                 {
                     BotResponse = "";
-                    await _core.TalkWithVanessa("Scrivi solo il motivo per il quale la richiesta non viene accettata argomentando adeguatamente.");
-                    await telegramBot.SendMessage("La richiesta non è stata accettata...", testing.Person.TelegramId);
-                    await telegramBot.SendMessage(BotResponse, testing.Person.TelegramId);
-                    await telegramBot.Riepilogo(testing.Person.TelegramId, true);
+
+                    await _core.TalkWithVanessa("Pensi ancora che la segnalazione contenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                    while (BotResponse.Length > 2)
+                    {
+                        BotResponse = "";
+                        await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
+
+                    }
+
+                    if (BotResponse.Equals("NO"))
+                    {
+                        try
+                        {
+                            schoolContext.Problems.Add(testing);
+                            schoolContext.SaveChanges();
+
+
+                            await telegramBot.CLEAR(testing.Person.TelegramId);
+                            await telegramBot.SendMessage("La richiesta è stata accettata e sarà inserita in database.\nSi prenderanno provvedimenti a fine settimana. ", testing.Person.TelegramId);
+                            bool soluzone = false;
+                            if (testing.Solution == "Nessuna soluzione proposta.")
+                            {
+                                await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
+                                testing.Person.TrustPoints += 0.25;
+                            }
+                            else if (testing.Solution != "-NOT SETTED5353453453435375698")
+                            {
+                                await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                                testing.Person.TrustPoints += 1;
+                            }
+                            schoolContext.SaveChanges();
+                            await telegramBot.Menu(testing.Person.TelegramId);
+                            telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
+                        }
+                        catch (Exception e)
+                        {
+                            schoolContext.Problems.Remove(testing);
+                            telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
+                            await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", testing.Person.TelegramId);
+                            await telegramBot.SendMessage("E' stato riscontrato un problema, ci scusiamo per l'imprevisto", telegramBot.DavideID);
+
+                        }
+                    }
+                    else
+                    {
+                        await telegramBot.SendMessage("La richiesta non è stata accettata... Hai perso 0.50 trustpoints\nE' risultata inappropriata la segnalazione", testing.Person.TelegramId);
+                        testing.Person.TrustPoints -= 0.50;
+                        schoolContext.SaveChanges();
+                        testing.AI_Analyzing = false;
+                        await telegramBot.Riepilogo(testing.Person.TelegramId, true);
+
+                    }
+
 
                 }
-                
-
             }
-
+            else {
+                try
+                {
+                    await telegramBot.CLEAR(testing.Person.TelegramId);
+                    testing.AI_Forced = true;
+                    bool soluzone = false;
+                    if (testing.Solution == "Nessuna soluzione proposta.")
+                    {
+                        await telegramBot.SendMessage("Questa segnalazione ti farà guadagnare 0.25 trustpoints", testing.Person.TelegramId);
+                        testing.Person.TrustPoints += 0.25;
+                    }
+                    else if (testing.Solution != "-NOT SETTED5353453453435375698")
+                    {
+                        await telegramBot.SendMessage("Per aver proposto una segnalazione, ti sarà assegnato 1 TrustPoint!\n\n-Se la soluzione dovesse essere ritenuta non efficiente ti verrà assegnato solo 0.5 TrustPoints.\n\n-Nel caso in cui la soluzione stessa sia inutile o non necessaria, perderai 2 TrustPoints.", testing.Person.TelegramId);
+                        testing.Person.TrustPoints += 1;
+                    }
+                    schoolContext.Problems.Add(testing);
+                    schoolContext.SaveChanges();
+                    await telegramBot.CLEAR(testing.Person.TelegramId);
+                    await telegramBot.Menu(testing.Person.TelegramId);
+                    telegramBot.DeleteWritingProblem(testing.Person.TelegramId);
+                }
+                catch (Exception e) { Console.WriteLine(e.Message); }
+            }
             semaphore.Release();
 
         }
@@ -669,11 +865,11 @@ async void AnalizzaCoda()
 async void AnalizzaCodaLettere()
 {
     Letter testing;
-    
+
 
     while (true)
     {
-     
+
         if (_letter_queue.Count > 0)
         {
 
@@ -681,56 +877,66 @@ async void AnalizzaCodaLettere()
             testing = _letter_queue.Dequeue();
             testing.AI_Analyzing = true;
             string mex;
-            string final = "Questo messaggio contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE, TERMINI OMOFOBI oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.Title;
+            // string final = "Questo messaggio contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE, TERMINI OMOFOBI oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.Title;
+            string final = "Questo messaggio contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
             BotResponse = "";
 
-            await _core.TalkWithVanessa(final);
+            _core.CLEARCONTEXT();
+            await _core.TalkWithVanessa(final, true);
+            while (BotResponse.Length > 2)
+            {
+                BotResponse = "";
+                await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
+
+            }
 
             if (BotResponse.Contains("NO"))
             {
 
-                mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA A CONDIZIONE CHE NON CI SIANO PAROLACCE, BESTEMMIE O MINACCIE DI MORTE.\n\nMESSAGGIO:\n{testing.Body}";
-                BotResponse = "";
+                //_core.CLEARCONTEXT();
+               // mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA.\n\nMESSAGGIO:\n{testing.Body}";
+                //BotResponse = "";
 
-                await _core.TalkWithVanessa(mex);
-                testing.Title = testing.Body;
-                testing.Body = BotResponse;
-                BotResponse = "";
+                //await _core.TalkWithVanessa(mex);
+                testing.Title = testing.Body;             
                 await telegramBot.SendLetter(testing);
             }
             else
             {
                 BotResponse = "";
-
+                _core.CLEARCONTEXT();
                 await _core.TalkWithVanessa("Pensi ancora che \n\n\" " + testing.Body + "\"\n\ncontenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                while (BotResponse.Length > 2)
+                {
+                    BotResponse = "";
+                    await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
+                }
 
                 if (BotResponse.Contains("NO"))
                 {
-                    mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA A CONDIZIONE CHE NON CI SIANO PAROLACCE, BESTEMMIE O MINACCIE DI MORTE.\n\nMESSAGGIO:\n{testing.Body}";
+                    /*mex = $"Ciao, mi chiamo {testing.People.Find(x => x.ToString().Equals(testing.Author)).ToString()} e vorrei che scrivessi questo messaggio a {testing.People.Find(x => x.ToString().Equals(testing.Destination)).ToString()}.\nTi chiedo di rielaborarlo da parte mia. SCRIVI SOLO IL MESSAGGIO RIELABORATO COME SE DOVESSI MANDARLO TU PERò DA PARTE MIA A CONDIZIONE CHE NON CI SIANO PAROLACCE, BESTEMMIE O MINACCIE DI MORTE.\n\nMESSAGGIO:\n{testing.Body}";
                     BotResponse = "";
 
                     await _core.TalkWithVanessa(mex);
                     testing.Title = testing.Body;
-                    testing.Body = BotResponse;
-                    BotResponse = "";
+                    testing.Body = BotResponse;*/
+                    testing.Title = testing.Body;
                     await telegramBot.SendLetter(testing);
 
                 }
                 else
                 {
-                    BotResponse = "";
-                    mex = $"Perché hai rifiutato l'elaborazione del messaggio? Scrivi le motivazioni";
-                    await _core.TalkWithVanessa(mex);
-                    string me = BotResponse;
+
                     await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
-                    await telegramBot.CLEAR(testing.People.Find(x => x.ToString().Equals(testing.Destination)).TelegramId);
-                    await telegramBot.SendMessage("Il messaggio non è stato accettato.", testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
-                    await telegramBot.SendMessage(me, testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
+                    await telegramBot.SendMessage("Il messaggio non è stato accettato.\nHai perso 0.50 trustpoints", testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
+                    testing.People.Find(x => x.ToString().Equals(testing.Author)).TrustPoints -= 0.50;
+                    schoolContext.SaveChanges();
+                    testing.AI_Analyzing = false;
                     await telegramBot.RiepilogoLettera(testing.People.Find(x => x.ToString().Equals(testing.Author)).TelegramId);
 
                 }
-               
+
 
             }
 
@@ -738,11 +944,12 @@ async void AnalizzaCodaLettere()
 
 
         }
-        
+
         Thread.Sleep(20);
     }
 }
-async void AnalizzaCodaAnnuncio() {
+async void AnalizzaCodaAnnuncio()
+{
 
     while (true)
     {
@@ -753,10 +960,18 @@ async void AnalizzaCodaAnnuncio() {
             Announcement testing = _announcement_queue.Dequeue();
             testing.AI_Analyzing = true;
 
-            string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
+            //   string final = "Questa segnalazione contiene PAROLACCE come cazzo, merda, figlio di puttana etc.. , MINACCE DI MORTE oppure OFFESE RAZIALI COME NEGRO e simili? scrivi SOLO SI in caso AFFERMATIVO scrivi solo NO in caso NEGATIVO\n\n\n" + testing.ToString();
+            string final = "Quest'annuncio contiene parolacce, bestemmie o insulti raziali? Risondi solo con SI (in caso affermativo) e NO (in caso negativo)\n\n{" + testing.ToString() + "}";
             BotResponse = "";
 
-            await _core.TalkWithVanessa(final);
+            _core.CLEARCONTEXT();
+            await _core.TalkWithVanessa(final, true);
+            while (BotResponse.Length > 2)
+            {
+                BotResponse = "";
+                await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
+
+            }
 
             if (BotResponse.Equals("NO"))
             {
@@ -788,7 +1003,12 @@ async void AnalizzaCodaAnnuncio() {
                 BotResponse = "";
 
                 await _core.TalkWithVanessa("Pensi ancora che la segnalazione contenga parolace, offese raziali o minacce di morte? Scrivi di nuovo il tuo giudizio (SI / NO)");
+                while (BotResponse.Length > 2)
+                {
+                    BotResponse = "";
+                    await _core.TalkWithVanessa("Puoi solo scrivere SI in caso affermativo e NO in caso negativo", true);
 
+                }
 
                 if (BotResponse.Equals("NO"))
                 {
@@ -816,11 +1036,11 @@ async void AnalizzaCodaAnnuncio() {
                 }
                 else
                 {
-                    BotResponse = "";
-                    await _core.TalkWithVanessa("Scrivi solo il motivo per il quale la richiesta non viene accettata argomentando adeguatamente.");
-                    await telegramBot.SendMessage("La richiesta non è stata accettata...", testing.Announcer.TelegramId);
-                    await telegramBot.SendMessage(BotResponse, testing.Announcer.TelegramId);
-                    await telegramBot.Riepilogo(testing.Announcer.TelegramId, true);
+                    await telegramBot.SendMessage("La richiesta non è stata accettata...\nHai perso 0.5 trustpoints\nIl linguaggio utilizzato è risultato inappropriato", testing.Announcer.TelegramId);
+                    testing.AI_Analyzing = false;
+                    testing.Announcer.TrustPoints -= 0.5;
+                    schoolContext.SaveChanges();
+                    await telegramBot.RiepilogoAnnuncio(testing.Announcer.TelegramId);
 
                 }
 
@@ -836,6 +1056,20 @@ async void AnalizzaCodaAnnuncio() {
 
 
 
+}
+
+string GenerateRandomString(int length)
+{
+    Random random = new Random();
+    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    StringBuilder result = new StringBuilder(length);
+
+    for (int i = 0; i < length; i++)
+    {
+        result.Append(chars[random.Next(chars.Length)]);
+    }
+
+    return result.ToString();
 }
 
 List<Classroom> robe = new List<Classroom>();
@@ -875,14 +1109,14 @@ async Task FottiClassi()
     }
 
 }
-
+/*
 async Task ResettaTutto()
 {
-    foreach (Person p in schoolContext.Students)
+    foreach (Person per in schoolContext.Students)
     {
-        p.Classroom = null;
-        p.Problem = null;
-        p.Decisions = null;
+        per.Classroom = null;
+        per.Problem = null;
+        per.Decisions = null;
 
     }
     schoolContext.Classrooms.RemoveRange(schoolContext.Classrooms);
@@ -897,9 +1131,208 @@ async Task ResettaTutto()
     await FottiClassi();
     schoolContext.Classrooms.AddRange(robe);
     schoolContext.SaveChanges();
+
+
+}
+*/
+async Task RimuoviDuplicati()
+{
+
+    List<Person> daRimuover = new List<Person>();
+    List<Person> tmp = new List<Person>();
+    List<Person> tmp1 = new List<Person>();
+    List<Person> tmp2 = new List<Person>();
+    Person pers;
+    tmp2 = schoolContext.Students.ToList();
+    foreach (Person p in tmp2)
+    {
+
+        if (!daRimuover.Contains(p))
+        {
+            tmp.Clear();
+            tmp1 = schoolContext.Students.Where(x => x.Name.Equals(p.Name) && x.Surname.Equals(p.Surname)).ToList();
+            tmp.AddRange(tmp1);
+            if (tmp.Count > 1)
+            {
+
+                if (tmp.Exists(x => x.TelegramId != -1))
+                {
+
+                    pers = tmp.Find(x => x.TelegramId != -1);
+
+                    if (pers != null)
+                    {
+                        tmp.Remove(pers);
+                    }
+                }
+                else
+                {
+
+                    tmp.Remove(tmp[0]);
+
+                }
+                daRimuover.AddRange(tmp);
+            }
+        }
+    }
+    foreach (Person p in daRimuover)
+    {
+
+        p.Classroom = null;
+        p.Announcements = null;
+
+    }
+    schoolContext.RemoveRange(daRimuover);
+    schoolContext.SaveChanges();
+
 }
 
+void CreaCodiciERequest()
+{
+    if (true)
+    {
+        int counteremailsend = 0;
+        int totalcounter = 0;
+        int total;
+        List<string> mancanti = new List<string>();
+        total = GestioneFile.GetCSVLines("Email.csv").Count();
+        List<string> line_n_c_class = GestioneFile.GetCSVLines("nomi_cognomi_classi.csv");
+        List<string> lines1 = new List<string>();
+        RegisterRequest rq;
+        Classroom tmpcls;
+        string nome, cognome, email, classe, code;
+        string[] attributes, attributes2;
+        TelegramCodes = GestioneFile.ReadXMLRequestRegister();
+        Person p;
+        foreach (string line in GestioneFile.GetCSVLines("Email.csv"))
+        {
+            
+            if (schoolContext.Students.ToList().Exists(x => x.Email.Equals(line.Split(",")[2])))
+            {
 
+                continue;
+            }
+
+            email = line.Split(",")[2];
+            string emailRegex = @"^s-([a-zA-Z0-9]{2,})\.([a-zA-Z0-9]{2,})@isiskeynes\.it$";
+
+            if (Regex.IsMatch(email, emailRegex))
+            {
+
+                lines1.Add(email);
+                nome = line.Split(",")[0];
+                cognome = line.Split(",")[1];
+                classe = "";
+                foreach (string lineclasse in line_n_c_class)
+                {
+
+
+                    attributes2 = lineclasse.Split(";");
+                    if (attributes2.Count() == 3)
+                    {
+
+                        if (attributes2[0].ToLower().Contains(cognome.ToLower()) && attributes2[1].ToLower().Contains(nome.ToLower()))
+                        {
+
+                            classe = attributes2[2];
+                            break;
+                        }
+
+                    }
+                }
+
+
+                if (nome != "" && cognome != "" && classe != "")
+                {
+                    totalcounter++;
+                    nome = char.ToUpper(nome[0]) + nome.Substring(1).ToLower();
+                    cognome = char.ToUpper(cognome[0]) + cognome.Substring(1).ToLower();
+                    //Console.WriteLine("Ho preparato la registrazione di " + nome + " " + cognome);
+
+
+                    string year = classe[0] + "";
+                    string sect = classe[1] + "";
+                    string spec = classe.Substring(2);
+
+
+                    tmpcls = schoolContext.Classrooms.FirstOrDefault(x => x.Year.Equals(year) && x.Section.Equals(sect) && x.Specialization.Equals(spec));
+
+                    //tmpcls = new Classroom(year, sect, spec);
+                    p = new Person(nome, cognome, DateTime.MinValue, tmpcls, -1, email, "nessuno", false);
+
+                    do
+                    {
+                        code = GenerateRandomString(8);
+                        code = code.ToUpper();
+
+                    } while (TelegramCodes.Exists(x => x.Code.Equals(code)));
+
+                    if (telegramBot.RegisterNewAccountRequest(nome, cognome, code, email))
+                    {
+                        schoolContext.Students.Add(p);
+                        schoolContext.SaveChanges();
+                    }
+
+                    //RELEASE      
+                    emailServiceVMeta.SendEmail("VMeta autenticazione", "Codice sicurezza - ATTIVO", $"Ciao {nome},<br> questo è il tuo personale codice di autenticazione per utilizzare VMeta su telegram.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{code}</b><br>A questo bot: <a href='https://t.me/Vmeta_bot'>VMeta</a><br><br>VMeta ti permetterà di:<br><br>- Segnalare a noi rappresentanti problematiche di qualsiasi tipo<br>- Rispondere ai nostri sondaggi (su gite, assemblee corsi etc)<br>- Scrivere annunci<br>- E molto altro<br><br>VMeta è da considerarsi uno strumento per lo studente perciò deve essere utilizzato responsabilmente.<br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto d'identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
+                    Console.WriteLine("Studente aggiunto: "+totalcounter);
+                    //TEST
+                    //emailServiceVMeta.SendEmail("VMeta autenticazione - TEST STRAORDINARIO", "Codice sicurezza", $"\n\nCiao {nome}, <br> Questa è una email di test (per farti capire questa email l'hanno ricevuta tipo in 10 [compreso io lmao]).<br>Comunque per fare questo test utiliziamo un bot differente che ho linkato successivamente.<br><br>Per autenticarti scrivi questo messaggio:   <b> /code:{code}</b><br>A questo bot: <a href='https://t.me/Dev_Dav_bot'>VMeta - DEVELOPER</a><br><br><b>IMPORTANTE!</b><br>Non condividere con nessuno queste informazioni.<br>Il codice rappresenta la <b>tua utenza Telegram</b> verso il sistema perciò fai attenzione ad un eventuale <b>furto di identità</b>.<br><br>Cordialmente,<br><br>-VMeta", email);
+
+
+
+                }
+                else
+                {
+                    Console.WriteLine("Non sono riuscito a recuperare le informazioni dell'email: " + email);
+                    mancanti.Add(line);
+                }
+            }
+
+
+            counteremailsend++;
+
+            if (counteremailsend == 28)
+            {
+                counteremailsend = 0;
+                Thread.Sleep(70000);
+            }
+
+        }
+    }
+    else { 
+        
+        Thread.Sleep(10000);
+    
+        telegramBot.SendMessage("Thread sleep terminata",telegramBot.DavideID);
+    
+    }
+
+
+}
+
+void SaveStudents(bool cond) {
+
+    if (cond)
+    {
+       
+
+        List<PersonModel> students = new List<PersonModel>();
+
+        foreach (Person pm in schoolContext.Students.Include(x => x.Classroom))
+        {
+
+            students.Add(new PersonModel(pm));
+
+        }
+
+        GestioneFile.WriteXMLPersonModelRegister(students);
+        GestioneFile.WriteFTP("PeopleModels.xml", "ftp://ftp.scapellatodavide.altervista.org/PeopleModelsBackUp.xml");
+        GestioneFile.WriteFTP("RequestRegister.xml", "ftp://ftp.scapellatodavide.altervista.org/RequestRegister.xml");
+
+    }
+
+}
 
 app.Run();
 

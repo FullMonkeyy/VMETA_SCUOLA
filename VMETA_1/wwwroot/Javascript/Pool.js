@@ -56,8 +56,9 @@ function UpdateDisplay(data) {
 
             document.getElementById("content").style.display = "none";
             document.getElementById("problemVisual").style.display = "block"
-            document.getElementById("main").style.height = "1500px"
-            document.getElementById("main").style.width = "1583px"
+            //document.getElementById("main").style.height = "1500px"
+            //document.getElementById("main").style.width = "1583px"
+            //document.getElementById("main").style.pa
             DisplayProblem(target.currentTarget.id);
 
         })
@@ -188,7 +189,7 @@ async function Elimina(id) {
     const options = {
         method: 'DELETE' // Metodo della richiesta
     };
-    const url = "/api/DeletePool/" + id;
+    const url = "api/DeletePool/" + id;
     // Effettua la richiesta utilizzando fetch()
     await fetch(url, options)
         .then(response => {
