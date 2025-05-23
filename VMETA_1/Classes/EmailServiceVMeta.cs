@@ -11,7 +11,7 @@ namespace VMETA_1.Classes
 
         public EmailServiceVMeta()
         {
-            connectionString = "endpoint=https://vmetacommunication.europe.communication.azure.com/;accesskey=CWzHFkcklduZSmUH85VZFrUiw9IJcFiYWZosaCmVKBFthNS3FH97JQQJ99AJACULyCp2sVGvAAAAAZCSTWRR";
+            connectionString = "endpoint=https://vmetacommunication.europe.communication.azure.com/;accesskey=";
             emailClient = new EmailClient(connectionString);
 
         }
